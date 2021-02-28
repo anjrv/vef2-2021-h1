@@ -60,7 +60,7 @@ CREATE TABLE users_episodes (
   id SERIAL PRIMARY KEY,
   "user" INTEGER NOT NULL,
   episode INTEGER NOT NULL,
-  state VARCHAR(128),
+  state VARCHAR(128), -- CHECK fyrir status strengir??
   rating INTEGER CHECK (rating > -1 AND rating < 6),
   CONSTRAINT episode FOREIGN KEY (episode) REFERENCES episodes (id),
   CONSTRAINT "user" FOREIGN KEY ("user") REFERENCES users (id)

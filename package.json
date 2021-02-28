@@ -4,10 +4,10 @@
   "description": "Hópverkefni 1",
   "main": "app.js",
   "scripts": {
-    "eslint": "eslint *.js ./src/**/*.js",
-    "test": "npm:eslint",
+    "test": "eslint ./src/*.js",
     "setup": "node ./src/setup.js",
     "start": "node ./src/app.js",
+    "demon": "nodemon ./src/app.js",
     "dev": "concurrently npm:sass npm:sass-watch npm:demon"
   },
   "repository": {
@@ -25,6 +25,7 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "cloudinary": "^1.25.0",
+    "concurrently": "^5.3.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "passport": "^0.4.1",
