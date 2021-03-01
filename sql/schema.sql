@@ -1,3 +1,4 @@
+-- CSV reading library, any works (csvparser)
 CREATE TABLE series (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
@@ -12,7 +13,7 @@ CREATE TABLE series (
 );
 
 CREATE TABLE genres (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY, -- choose key in JS rather than automatic serial in SQL
     name VARCHAR(256) NOT NULL
 );
 
@@ -23,7 +24,6 @@ CREATE TABLE serie_genre (
     CONSTRAINT serie FOREIGN KEY (serie) REFERENCES series (id),
     CONSTRAINT genre FOREIGN KEY (genre) REFERENCES genres (id)
 );
-
 
 CREATE TABLE seasons (
     id SERIAL PRIMARY KEY,
@@ -60,7 +60,7 @@ CREATE TABLE users_episodes (
   id SERIAL PRIMARY KEY,
   "user" INTEGER NOT NULL,
   episode INTEGER NOT NULL,
-  state VARCHAR(128), -- CHECK fyrir status strengir??
+  state VARCHAR(128), -- ENUM fyrir states
   rating INTEGER CHECK (rating > -1 AND rating < 6),
   CONSTRAINT episode FOREIGN KEY (episode) REFERENCES episodes (id),
   CONSTRAINT "user" FOREIGN KEY ("user") REFERENCES users (id)
