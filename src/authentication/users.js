@@ -124,7 +124,7 @@ async function findById(id) {
 
   const user = await query(
     `SELECT
-      id, username, email, admin, created, updated
+      id, username, email, admin
     FROM
       users
     WHERE id = $1`,
