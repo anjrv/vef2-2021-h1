@@ -7,8 +7,7 @@
     "test": "eslint ./src/*.js",
     "setup": "node ./src/setup.js",
     "start": "node ./src/app.js",
-    "demon": "nodemon ./src/app.js",
-    "dev": "concurrently npm:sass npm:sass-watch npm:demon"
+    "dev": "nodemon ./src/app.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +28,7 @@
     "csv-parser": "^3.0.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "pg": "^8.5.1",
