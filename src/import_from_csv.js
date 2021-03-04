@@ -3,10 +3,7 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import { query } from './db.js';
 
-// TODO: Láta fara inn í töflur, það er ekki að gerast núna,
-// hugsanlega þarf ég að klára að útfæra app.js osfrv.
-// TODO: Require í stað import
-// TODO: importSeasons og importEpisodes föll
+// TODO: genres
 
 async function importSeries(series) {
   const q = `
@@ -32,6 +29,48 @@ async function importSeries(series) {
   return query(q, values);
 }
 
+async function importSeasons(seasons) {
+  const q = `
+  INSERT INTO
+    seasons
+    (id, name, number, airDate, overview, poster, serie)
+  VALUES
+    ($1, $2, $3, $4, $5, $6, $7)`;
+
+  const values = [
+    seasons.id,
+    seasons.name,
+    seasons.number,
+    seasons.airDate,
+    seasons.overview,
+    seasons.poster,
+    seasons.serie,
+  ];
+
+  return query(q, values);
+}
+
+async function importEpisodes(episodes) {
+  const q = `
+  INSERT INTO
+    episodes
+    (id, name, number, airDate, overview, season, serie)
+  VALUES
+    ($1, $2, $3, $4, $5, $6, $7)`;
+
+  const values = [
+    episodes.id,
+    episodes.name,
+    episodes.number,
+    episodes.airDate,
+    episodes.overview,
+    episodes.season,
+    episodes.serie,
+  ];
+
+  return query(q, values);
+}
+
 async function importData() {
   const episodes = [];
   const seasons = [];
@@ -51,14 +90,12 @@ async function importData() {
     .pipe(csv())
     .on('data', (data) => series.push(data))
     .on('end', () => {
-      // eslint-disable-next-line no-console
-      console.log(series); // for testing purposes, delete later
+      for (let i = 0; i < series.length; i += 1) {
+        importSeries(series[i]);
+        console.info(`Imported ${series[i].name}`);
+      }
     });
 
-  for (let i = 0; i < series.length; i += 1) {
-    await importSeries(series[i]);
-    console.info(`Imported ${series[i].name}`);
-  }
   console.info('finished!');
 }
 
