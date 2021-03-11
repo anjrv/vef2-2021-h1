@@ -33,7 +33,7 @@ async function listImages() {
   }
 
   // TODO, þarf mögulega að nota paging svo að þetta deyr ekki
-  const res = await resourcesAsync({ max_results: 10 });
+  const res = await resourcesAsync({ max_results: 150 });
 
   cachedListImages = res.resources;
 
