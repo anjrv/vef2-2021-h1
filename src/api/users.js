@@ -3,7 +3,6 @@ import {
   updateUser,
   findById,
 } from '../authentication/users.js';
-
 import { query, pagedQuery } from '../db.js';
 import { isBoolean } from '../utils/validation.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
@@ -13,7 +12,7 @@ async function listUsers(req, res) {
 
   const users = await pagedQuery(
     `SELECT
-        id, username, email, admin, created, updated
+        id, username, email, admin
       FROM
         users
       ORDER BY updated DESC`,
@@ -73,10 +72,10 @@ async function updateUserRoute(req, res) {
   const q = `
       UPDATE
         users
-      SET admin = $1, updated = current_timestamp
+      SET admin = $1,
       WHERE id = $2
       RETURNING
-        id, username, email, admin, created, updated`;
+        id, username, email, admin`;
   const result = await query(q, [Boolean(admin), id]);
 
   return res.status(201).json(result.rows[0]);
