@@ -10,7 +10,6 @@ requireEnv(['DATABASE_URL', 'CLOUDINARY_URL', 'JWT_SECRET']);
 
 const {
   PORT: port = 3000,
-  HOST: host = '127.0.0.1',
 } = process.env;
 
 const app = express();
@@ -45,7 +44,5 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 app.listen(port, () => {
-  if (host) {
-    console.info(`Server running at http://${host}:${port}/`);
-  }
+  console.info(`Server running at http://localhost:${port}/`);
 });
