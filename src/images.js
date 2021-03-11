@@ -32,6 +32,7 @@ async function listImages() {
     return Promise.resolve(cachedListImages);
   }
 
+  // TODO, þarf mögulega að nota paging svo að þetta deyr ekki
   const res = await resourcesAsync({ max_results: 10 });
 
   cachedListImages = res.resources;
@@ -40,7 +41,6 @@ async function listImages() {
 }
 
 function imageComparer(current) {
-  // TODO hér ættum við að bera saman fleiri hluti, t.d. width og height
   return (uploaded) => uploaded.bytes === current.size;
 }
 
