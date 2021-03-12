@@ -1,7 +1,13 @@
 import express from 'express';
 import catchErrors from '../utils/catchErrors.js';
 import { requireAuth, checkUserIsAdmin } from '../authentication/auth.js';
-import { seriesRoute } from './series.js';
+import {
+  seriesRoute,
+  seriesById,
+  seriesPostRoute,
+  seriesPatchRoute,
+  seriesDeleteRoute,
+} from './series.js';
 import {
   listUsers,
   listUser,
@@ -30,6 +36,7 @@ function indexRoute(req, res) {
     // Bæta við routes fyrir series, seasons, episodes, genres, ...
     tv: {
       series: '/tv',
+      serie: '/tv/{id}',
     },
   });
 }
@@ -42,5 +49,9 @@ router.patch('/users/me', requireAuth, catchErrors(updateCurrentUser));
 router.get('/users/:id', requireAdmin, catchErrors(listUser));
 router.patch('/users/:id', requireAdmin, catchErrors(updateUser));
 router.get('/tv', catchErrors(seriesRoute));
+router.post('/tv', requireAdmin, catchErrors(seriesPostRoute));
+router.get('tv/:id', catchErrors(seriesById));
+router.patch('tv/:id', requireAdmin, catchErrors(seriesPatchRoute));
+router.delete('tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
 
 export { router };

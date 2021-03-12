@@ -80,11 +80,17 @@ async function importData() {
 
   fs.createReadStream('./data/episodes.csv')
     .pipe(csv())
-    .on('data', (data) => episodes.push(data));
+    .on('data', (data) => episodes.push(data))
+    .on('end', () => {
+      console.log(episodes);
+    });
 
   fs.createReadStream('./data/seasons.csv')
     .pipe(csv())
-    .on('data', (data) => seasons.push(data));
+    .on('data', (data) => seasons.push(data))
+    .on('end', () => {
+      console.log(seasons);
+    });
 
   fs.createReadStream('./data/series.csv')
     .pipe(csv())
