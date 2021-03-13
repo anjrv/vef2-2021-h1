@@ -1,8 +1,8 @@
--- CSV reading library, any works (csvparser)
 CREATE TABLE series (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
     airDate TIMESTAMP WITH TIME ZONE,
+    genres VARCHAR(256),
     inProduction BOOLEAN,
     tagline VARCHAR(256),
     image VARCHAR(256) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE series (
 );
 
 CREATE TABLE genres (
-    id SERIAL PRIMARY KEY, -- choose key in JS rather than automatic serial in SQL -- later
+    id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL
 );
 

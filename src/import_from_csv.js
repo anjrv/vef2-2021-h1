@@ -26,10 +26,7 @@ async function importGenres(rows) {
 
   // skila á forminu { NAFN: id, .. } svo að það sé auðvelt að fletta upp
   results.forEach((r) => {
-    const [{
-      id,
-      name,
-    }] = r.rows;
+    const [{ id, name }] = r.rows;
 
     mapped[name] = id;
   });
@@ -50,15 +47,15 @@ async function importSeries(series, genres) {
   const values = [
     series.id,
     series.name,
-    series.airDate,
-    genre,
-    series.inProduction,
-    series.tagline,
+    series.airDate || null,
+    genre || null, // Þarf kannski að endurskoða genre vinnslu.
+    series.inProduction || null,
+    series.tagline || null,
     series.image,
-    series.description,
-    series.language,
-    series.network,
-    series.homepage,
+    series.description || null,
+    series.language || null,
+    series.network || null,
+    series.homepage || null,
   ];
 
   return query(q, values);
@@ -68,18 +65,17 @@ async function importSeasons(seasons) {
   const q = `
   INSERT INTO
     seasons
-    (id, name, number, airDate, overview, poster, serie)
+    (name, number, airDate, overview, poster, serie)
   VALUES
-    ($1, $2, $3, $4, $5, $6, $7)`;
+    ($1, $2, $3, $4, $5, $6)`;
 
   const values = [
-    seasons.id,
     seasons.name,
     seasons.number,
-    seasons.airDate,
-    seasons.overview,
+    seasons.airDate || null,
+    seasons.overview || null,
     seasons.poster,
-    seasons.serie,
+    seasons.serieId,
   ];
 
   return query(q, values);
@@ -89,64 +85,66 @@ async function importEpisodes(episodes) {
   const q = `
   INSERT INTO
     episodes
-    (id, name, number, airDate, overview, season, serie)
+    (name, number, airDate, overview, season, serie)
   VALUES
-    ($1, $2, $3, $4, $5, $6, $7)`;
+    ($1, $2, $3, $4, $5, $6)`;
 
   const values = [
-    episodes.id,
     episodes.name,
     episodes.number,
-    episodes.airDate,
-    episodes.overview,
+    episodes.airDate || null,
+    episodes.overview || null,
     episodes.season,
-    episodes.serie,
+    episodes.serieId,
   ];
 
   return query(q, values);
 }
 
-async function importData() {
-  const episodes = [];
-  const seasons = [];
-  const series = [];
-
-  console.info('Starting import');
-
-  fs.createReadStream('../data/episodes.csv')
-    .pipe(csv())
-    .on('data', (data) => episodes.push(data))
-    .on('end', () => {
-      for (let i = 0; i < episodes.length; i += 1) {
-        importEpisodes(episodes[i]);
-        console.info(`Imported ${episodes[i].name}`);
-      }
-    });
-
-  fs.createReadStream('../data/seasons.csv')
-    .pipe(csv())
-    .on('data', (data) => seasons.push(data))
-    .on('end', () => {
-      for (let i = 0; i < seasons.length; i += 1) {
-        importSeasons(series[i]);
-        console.info(`Imported ${seasons[i].name}`);
-      }
-    });
-
-  fs.createReadStream('../data/series.csv')
-    .pipe(csv())
-    .on('data', (data) => series.push(data))
-    .on('end', () => {
-      const genres = importGenres(series);
-      for (let i = 0; i < series.length; i += 1) {
-        importSeries(series[i], genres);
-        console.info(`Imported ${series[i].name}`);
-      }
-    });
-
-  console.info('finished!');
+function getData(file) {
+  const data = [];
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(file)
+      .pipe(csv())
+      .on('error', (error) => {
+        reject(error);
+      })
+      .on('data', (item) => data.push(item))
+      .on('end', () => {
+        resolve(data);
+      });
+  });
 }
 
-importData().catch((err) => {
-  console.error('Error importing', err);
-});
+export async function importData() {
+  console.info('Starting import');
+
+  const series = await getData('./data/series.csv');
+  const genres = importGenres(series);
+
+  for (let i = 0; i < series.length; i += 1) {
+    await importSeries(series[i], genres);
+    console.info(`Imported ${series[i].name}`);
+  }
+
+  console.info('Series imported');
+
+  const seasons = await getData('./data/seasons.csv');
+
+  for (let i = 0; i < seasons.length; i += 1) {
+    await importSeasons(seasons[i]);
+    console.info(`Imported ${seasons[i].name}`);
+  }
+
+  console.info('Seasons imported');
+
+  const episodes = await getData('./data/episodes.csv');
+
+  for (let i = 0; i < episodes.length; i += 1) {
+    await importEpisodes(episodes[i]);
+    console.info(`Imported ${episodes[i].name}`);
+  }
+
+  console.info('Episodes imported');
+  console.info('Finished!');
+}

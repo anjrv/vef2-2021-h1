@@ -3,6 +3,7 @@ import util from 'util';
 import fs from 'fs';
 
 import { uploadImagesFromDisk } from './images.js';
+import { importData } from './import_from_csv.js';
 import { query } from './db.js';
 import requireEnv from './utils/requireEnv.js';
 
@@ -54,6 +55,12 @@ async function main() {
     console.info(`Sendi ${images.length} myndir á Cloudinary`);
   } catch (e) {
     console.error('Villa við senda myndir á Cloudinary:', e.message);
+  }
+
+  try {
+    await importData();
+  } catch (e) {
+    console.error('Villa við csv innlestur:', e.message);
   }
 }
 
