@@ -7,6 +7,8 @@ import {
   seriesPostRoute,
   seriesPatchRoute,
   seriesDeleteRoute,
+  genresRoute,
+  genresPostRoute,
 } from './series.js';
 import {
   listUsers,
@@ -38,6 +40,7 @@ function indexRoute(req, res) {
       series: '/tv',
       serie: '/tv/{id}',
     },
+    genres: '/genres',
   });
 }
 
@@ -53,5 +56,7 @@ router.post('/tv', requireAdmin, catchErrors(seriesPostRoute));
 router.get('tv/:id', catchErrors(seriesById));
 router.patch('tv/:id', requireAdmin, catchErrors(seriesPatchRoute));
 router.delete('tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
+router.get('/genres', catchErrors(genresRoute));
+router.post('/genres', requireAdmin, catchErrors(genresPostRoute));
 
 export { router };

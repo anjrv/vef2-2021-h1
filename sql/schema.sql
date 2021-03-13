@@ -13,7 +13,7 @@ CREATE TABLE series (
 );
 
 CREATE TABLE genres (
-    id INTEGER PRIMARY KEY, -- choose key in JS rather than automatic serial in SQL
+    id SERIAL PRIMARY KEY, -- choose key in JS rather than automatic serial in SQL -- later
     name VARCHAR(256) NOT NULL
 );
 

@@ -5,18 +5,53 @@ import { query } from './db.js';
 
 // TODO: genres
 
-async function importSeries(series) {
+async function importGenres(rows) {
+  const genres = [];
+
+  // Finna einstaka flokka
+  rows.forEach((row) => {
+    if (genres.indexOf(row.genres) < 0) {
+      genres.push(row.genres);
+    }
+  });
+
+  // breyta hverjum einstökum flokk í insert fyrir þann flokk
+  const q = 'INSERT INTO genres (name) VALUES ($1) RETURNING *';
+  const inserts = genres.map(c => query(q, [c]));
+
+  // inserta öllu og bíða
+  const results = await Promise.all(inserts);
+
+  const mapped = {};
+
+  // skila á forminu { NAFN: id, .. } svo að það sé auðvelt að fletta upp
+  results.forEach((r) => {
+    const [{
+      id,
+      name,
+    }] = r.rows;
+
+    mapped[name] = id;
+  });
+
+  return mapped;
+}
+
+async function importSeries(series, genres) {
   const q = `
   INSERT INTO
     series
-    (id, name, airDate, inProduction, tagline, image, description, language, network, homepage)
+    (id, name, airDate, genres, inProduction, tagline, image, description, language, network, homepage)
   VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`;
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
+
+  const genre = genres[series.genres];
 
   const values = [
     series.id,
     series.name,
     series.airDate,
+    genre,
     series.inProduction,
     series.tagline,
     series.image,
@@ -82,22 +117,29 @@ async function importData() {
     .pipe(csv())
     .on('data', (data) => episodes.push(data))
     .on('end', () => {
-      console.log(episodes);
+      for (let i = 0; i < episodes.length; i += 1) {
+        importEpisodes(episodes[i]);
+        console.info(`Imported ${episodes[i].name}`);
+      }
     });
 
   fs.createReadStream('./data/seasons.csv')
     .pipe(csv())
     .on('data', (data) => seasons.push(data))
     .on('end', () => {
-      console.log(seasons);
+      for (let i = 0; i < seasons.length; i += 1) {
+        importSeasons(series[i]);
+        console.info(`Imported ${seasons[i].name}`);
+      }
     });
 
   fs.createReadStream('./data/series.csv')
     .pipe(csv())
     .on('data', (data) => series.push(data))
     .on('end', () => {
+      const genres = importGenres(series);
       for (let i = 0; i < series.length; i += 1) {
-        importSeries(series[i]);
+        importSeries(series[i], genres);
         console.info(`Imported ${series[i].name}`);
       }
     });

@@ -5,7 +5,15 @@ import addPageMetadata from '../utils/addPageMetadata.js';
 import { isInt } from '../utils/validation.js';
 
 // TODO: Validation for post and patch
-// tv: id - delete
+// TODO: Seasons og Episodes
+
+async function genresRoute(req, res) {
+  const { offset = 0, limit = 10 } = req.query;
+
+  const genres = await pagedQuery('SELECT * FROM genres', [], { offset, limit });
+
+  return res.json(genres);
+}
 
 async function findById(id) {
   if (!isInt(id)) {
@@ -26,6 +34,30 @@ async function findById(id) {
   }
 
   return series.rows[0];
+}
+
+async function genresPostRoute(req, res) {
+  const { name } = req.body;
+
+  if (typeof name !== 'string' || name.length === 0 || name.length > 255) {
+    const message = 'Name is required, must not be empty or longer than 255 characters';
+    return res.status(400).json({
+      errors: [{ field: 'name', message }],
+    });
+  }
+
+  const cat = await query('SELECT * FROM genres WHERE name = $1', [name]);
+
+  if (cat.rows.length > 0) {
+    return res.status(400).json({
+      errors: [{ field: 'name', message: 'Genre already exists' }],
+    });
+  }
+
+  const q = 'INSERT INTO genres (name) VALUES ($1) RETURNING*';
+  const result = await query(q, [xss(name)]);
+
+  return res.status(201).json(result.rows[0]);
 }
 
 async function seriesRoute(req, res) {
@@ -55,14 +87,13 @@ async function seriesPostRoute(req, res) {
 
   const q = `
     INSERT INTO series
-      (id, name, airDate, inProduction, tagline, image, description, language, network, homepage)
+      (name, airDate, inProduction, tagline, image, description, language, network, homepage)
     VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9 )
     RETURNING *
     `;
 
   const data = [
-    xss(req.body.id),
     xss(req.body.name),
     xss(req.body.airDate),
     xss(req.body.inProduction),
@@ -115,7 +146,6 @@ async function seriesPatchRoute(req, res) {
   const isset = f => typeof f === 'string' || typeof f === 'number';
 
   const fields = [
-    isset(req.body.id) ? 'id' : null,
     isset(req.body.name) ? 'name' : null,
     isset(req.body.airdate) ? 'airDate' : null,
     isset(req.body.inProduction) ? 'inProduction' : null,
@@ -128,7 +158,6 @@ async function seriesPatchRoute(req, res) {
   ];
 
   const values = [
-    isset(req.body.id) ? xss(req.body.id) : null,
     isset(req.body.name) ? xss(req.body.name) : null,
     isset(req.body.airdate) ? xss(req.body.airDate) : null,
     isset(req.body.inProduction) ? xss(req.body.inProduction) : null,
@@ -172,6 +201,8 @@ async function seriesDeleteRoute(req, res) {
 }
 
 export {
+  genresRoute,
+  genresPostRoute,
   seriesRoute,
   seriesPostRoute,
   seriesById,
