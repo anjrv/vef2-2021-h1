@@ -17,7 +17,7 @@ async function importGenres(rows) {
 
   // breyta hverjum einstökum flokk í insert fyrir þann flokk
   const q = 'INSERT INTO genres (name) VALUES ($1) RETURNING *';
-  const inserts = genres.map(c => query(q, [c]));
+  const inserts = genres.map((c) => query(q, [c]));
 
   // inserta öllu og bíða
   const results = await Promise.all(inserts);
@@ -113,7 +113,7 @@ async function importData() {
 
   console.info('Starting import');
 
-  fs.createReadStream('./data/episodes.csv')
+  fs.createReadStream('../data/episodes.csv')
     .pipe(csv())
     .on('data', (data) => episodes.push(data))
     .on('end', () => {
@@ -123,7 +123,7 @@ async function importData() {
       }
     });
 
-  fs.createReadStream('./data/seasons.csv')
+  fs.createReadStream('../data/seasons.csv')
     .pipe(csv())
     .on('data', (data) => seasons.push(data))
     .on('end', () => {
@@ -133,7 +133,7 @@ async function importData() {
       }
     });
 
-  fs.createReadStream('./data/series.csv')
+  fs.createReadStream('../data/series.csv')
     .pipe(csv())
     .on('data', (data) => series.push(data))
     .on('end', () => {
