@@ -120,7 +120,7 @@ export async function importData() {
   console.info('Starting import');
 
   const series = await getData('./data/series.csv');
-  const genres = importGenres(series);
+  const genres = await importGenres(series);
 
   for (let i = 0; i < series.length; i += 1) {
     await importSeries(series[i], genres);
