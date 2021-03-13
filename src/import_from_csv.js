@@ -48,7 +48,7 @@ async function importSeries(series, genres) {
     series.id,
     series.name,
     series.airDate || null,
-    genre || null, // Þarf kannski að endurskoða genre vinnslu.
+    genre,
     series.inProduction || null,
     series.tagline || null,
     series.image,
