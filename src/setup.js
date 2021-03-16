@@ -58,7 +58,7 @@ async function main() {
   }
 
   try {
-    await importData();
+    await importData(images);
   } catch (e) {
     console.error('Villa við csv innlestur:', e.message);
   }

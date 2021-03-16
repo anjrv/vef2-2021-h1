@@ -79,14 +79,14 @@ export async function uploadImagesFromDisk(imageDir) {
 
   debug(`Bæti við ${filteredImages.length} myndum`);
 
-  const images = [];
+  const images = new Map();
 
   for (let i = 0; i < filteredImages.length; i += 1) {
     const image = filteredImages[i];
     const imagePath = path.join(imageDir, image);
     const uploaded = await uploadImageIfNotUploaded(imagePath); // eslint-disable-line
 
-    images.push(uploaded);
+    images.set(image, uploaded);
   }
 
   debug('Búið að senda myndir á Cloudinary');

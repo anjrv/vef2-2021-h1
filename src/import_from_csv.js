@@ -34,7 +34,7 @@ async function importGenres(rows) {
   return mapped;
 }
 
-async function importSeries(series, genres) {
+async function importSeries(series, genres, images) {
   const q = `
   INSERT INTO
     series
@@ -51,7 +51,7 @@ async function importSeries(series, genres) {
     genre,
     series.inProduction || null,
     series.tagline || null,
-    series.image,
+    images.get(series.image),
     series.description || null,
     series.language || null,
     series.network || null,
@@ -61,7 +61,7 @@ async function importSeries(series, genres) {
   return query(q, values);
 }
 
-async function importSeasons(seasons) {
+async function importSeasons(seasons, images) {
   const q = `
   INSERT INTO
     seasons
@@ -74,7 +74,7 @@ async function importSeasons(seasons) {
     seasons.number,
     seasons.airDate || null,
     seasons.overview || null,
-    seasons.poster,
+    images.get(seasons.poster),
     seasons.serieId,
   ];
 
@@ -116,14 +116,14 @@ function getData(file) {
   });
 }
 
-export async function importData() {
+export async function importData(images) {
   console.info('Starting import');
 
   const series = await getData('./data/series.csv');
   const genres = await importGenres(series);
 
   for (let i = 0; i < series.length; i += 1) {
-    await importSeries(series[i], genres);
+    await importSeries(series[i], genres, images);
     console.info(`Imported ${series[i].name}`);
   }
 
@@ -132,7 +132,7 @@ export async function importData() {
   const seasons = await getData('./data/seasons.csv');
 
   for (let i = 0; i < seasons.length; i += 1) {
-    await importSeasons(seasons[i]);
+    await importSeasons(seasons[i], images);
     console.info(`Imported ${seasons[i].name}`);
   }
 
