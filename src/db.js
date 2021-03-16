@@ -6,11 +6,16 @@ import { toPositiveNumberOrDefault } from './utils/validation.js';
 
 dotenv.config();
 
+const {
+  DATABASE_URL: connectionString,
+  NODE_ENV: nodeEnv = 'development',
+} = process.env;
+
 const { Client } = pkg;
-const connectionString = process.env.DATABASE_URL;
+const ssl = nodeEnv !== 'development' ? { rejectUnauthorized: false } : false;
 
 async function query(sqlQuery, values = []) {
-  const client = new Client({ connectionString });
+  const client = new Client({ connectionString, ssl });
   await client.connect();
 
   let result;
