@@ -15,7 +15,7 @@ async function listUsers(req, res) {
         id, username, email, admin
       FROM
         users
-      ORDER BY updated DESC`,
+      ORDER BY id ASC`,
     [],
     { offset, limit },
   );
