@@ -143,7 +143,7 @@ async function seriesPatchRoute(req, res) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  const isset = f => typeof f === 'string' || typeof f === 'number';
+  const isset = (f) => typeof f === 'string' || typeof f === 'number';
 
   const fields = [
     isset(req.body.name) ? 'name' : null,

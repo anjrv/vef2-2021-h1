@@ -1,7 +1,10 @@
+import dotenv from 'dotenv';
 import pkg from 'pg';
 
 import debug from './utils/debug.js';
 import { toPositiveNumberOrDefault } from './utils/validation.js';
+
+dotenv.config();
 
 const { Client } = pkg;
 const connectionString = process.env.DATABASE_URL;
