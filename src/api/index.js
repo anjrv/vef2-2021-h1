@@ -53,9 +53,9 @@ router.get('/users/:id', requireAdmin, catchErrors(listUser));
 router.patch('/users/:id', requireAdmin, catchErrors(updateUser));
 router.get('/tv', catchErrors(seriesRoute));
 router.post('/tv', requireAdmin, catchErrors(seriesPostRoute));
-router.get('tv/:id', catchErrors(seriesById));
-router.patch('tv/:id', requireAdmin, catchErrors(seriesPatchRoute));
-router.delete('tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
+router.get('/tv/:id', catchErrors(seriesById));
+router.patch('/tv/:id', requireAdmin, catchErrors(seriesPatchRoute));
+router.delete('/tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
 router.get('/genres', catchErrors(genresRoute));
 router.post('/genres', requireAdmin, catchErrors(genresPostRoute));
 
