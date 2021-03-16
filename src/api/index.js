@@ -2,6 +2,8 @@ import express from 'express';
 import catchErrors from '../utils/catchErrors.js';
 import { requireAuth, checkUserIsAdmin } from '../authentication/auth.js';
 import {
+  seasonsRoute,
+  seasonById,
   seriesRoute,
   seriesById,
   seriesPostRoute,
@@ -41,6 +43,10 @@ function indexRoute(req, res) {
       serie: '/tv/{id}',
     },
     genres: '/genres',
+    seasons: {
+      seasons: '/tv/{id}/season/',
+      season: '/tv/{id}/season/{number}',
+    },
   });
 }
 
@@ -58,5 +64,7 @@ router.patch('/tv/:id', requireAdmin, catchErrors(seriesPatchRoute));
 router.delete('/tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
 router.get('/genres', catchErrors(genresRoute));
 router.post('/genres', requireAdmin, catchErrors(genresPostRoute));
+router.get('/tv/:id/season/', catchErrors(seasonsRoute));
+router.get('/tv/:id/season/:number', catchErrors(seasonById));
 
 export { router };

@@ -5,7 +5,33 @@ import addPageMetadata from '../utils/addPageMetadata.js';
 import { isInt } from '../utils/validation.js';
 
 // TODO: Validation for post and patch
-// TODO: Seasons og Episodes
+// TODO: Klára Seasons og Episodes POST
+// TODO: Bæta við genres, seasons ofl fyrir tv id GET
+// TODO: Skjala og refactor
+
+async function seasonsRoute(req, res) {
+  const { offset = 0, limit = 10 } = req.query;
+  const { id } = req.params;
+
+  const seasons = await pagedQuery('SELECT * FROM seasons WHERE serie = $1', [id], { offset, limit });
+
+  return res.json(seasons);
+}
+
+async function seasonsPostRoute(req, res) {
+}
+
+async function seasonById(req, res) {
+  // TODO: á líka að skila fylki af þáttum
+  const { id, number } = req.params;
+
+  const season = await query('SELECT * FROM seasons WHERE serie = $1 AND number = $2', [id, number]);
+
+  return res.json(season.rows[0]);
+}
+
+async function episodesRoute(req, res) {
+}
 
 async function genresRoute(req, res) {
   const { offset = 0, limit = 10 } = req.query;
@@ -201,6 +227,8 @@ async function seriesDeleteRoute(req, res) {
 }
 
 export {
+  seasonsRoute,
+  seasonById,
   genresRoute,
   genresPostRoute,
   seriesRoute,
