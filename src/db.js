@@ -6,6 +6,7 @@ import { toPositiveNumberOrDefault } from './utils/validation.js';
 
 dotenv.config();
 
+// NODE_ENV til að komast hjá heroku SSL
 const {
   DATABASE_URL: connectionString,
   NODE_ENV: nodeEnv = 'development',
@@ -14,6 +15,13 @@ const {
 const { Client } = pkg;
 const ssl = nodeEnv !== 'development' ? { rejectUnauthorized: false } : false;
 
+/**
+ * Framkvæmir skipun á gagnagrunn með gefnum upplýsingum
+ *
+ * @param {*} sqlQuery SQL skipun til að framkvæma
+ * @param {*} values gildi til að setja inn í SQL skipun
+ * @returns niðurstaða úr SQL query
+ */
 async function query(sqlQuery, values = []) {
   const client = new Client({ connectionString, ssl });
   await client.connect();
@@ -29,6 +37,13 @@ async function query(sqlQuery, values = []) {
   return result;
 }
 
+/**
+ * Framkvæmir paged skipun á gagnagrunn með gefnum upplýsingum
+ *
+ * @param {*} sqlQuery SQL skipun til að framkvæma
+ * @param {*} values gildi til að setja inn í SQL skipun
+ * @returns niðurstaða úr SQL query
+ */
 async function pagedQuery(
   sqlQuery,
   values = [],
@@ -55,9 +70,20 @@ async function pagedQuery(
   };
 }
 
+/**
+ * Framkvæmir uppfærslu á gagnagrunn ef hún er lögleg
+ *
+ * @param {*} table table til að uppfæra
+ * @param {*} id id á hlut sem er verið að uppfæra
+ * @param {*} fields upplýsingar sem á að breyta
+ * @param {*} values gildi sem á að nota fyrir breytingum
+ * @returns niðurstaða úr færslu
+ */
 async function conditionalUpdate(table, id, fields, values) {
   const filteredFields = fields.filter((i) => typeof i === 'string');
-  const filteredValues = values.filter((i) => typeof i === 'string' || typeof i === 'number' || i instanceof Date);
+  const filteredValues = values.filter(
+    (i) => typeof i === 'string' || typeof i === 'number' || i instanceof Date,
+  );
 
   if (filteredFields.length === 0) {
     return false;

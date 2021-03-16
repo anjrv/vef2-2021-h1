@@ -3,8 +3,12 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import { query } from './db.js';
 
-// TODO: genres
-
+/**
+ * Býr til genre flokkar
+ *
+ * @param {Object} rows raðir til að vinna úr
+ * @returns samsettar genre flokkar
+ */
 async function importGenres(rows) {
   const genres = [];
 
@@ -34,6 +38,14 @@ async function importGenres(rows) {
   return mapped;
 }
 
+/**
+ * Setur seríu inn í gagnagrunn
+ *
+ * @param {*} series sería til að setja inn
+ * @param {*} genres viðeigandi genres
+ * @param {*} images fylki af Cloudinary myndum
+ * @returns köll á query fyrir insert
+ */
 async function importSeries(series, genres, images) {
   const q = `
   INSERT INTO
@@ -61,6 +73,13 @@ async function importSeries(series, genres, images) {
   return query(q, values);
 }
 
+/**
+ * Setur season inn í gagnagrunn
+ *
+ * @param {*} seasons season úr seríu
+ * @param {*} images fylki af Cloudinary myndum
+ * @returns köll á query fyrir insert
+ */
 async function importSeasons(seasons, images) {
   const q = `
   INSERT INTO
@@ -81,6 +100,12 @@ async function importSeasons(seasons, images) {
   return query(q, values);
 }
 
+/**
+ * Setur sjónvarpsþátt inn í gagnagrunn
+ *
+ * @param {*} episodes sjónvarsþátt
+ * @returns köll á query fyrir insert
+ */
 async function importEpisodes(episodes) {
   const q = `
   INSERT INTO
@@ -101,6 +126,12 @@ async function importEpisodes(episodes) {
   return query(q, values);
 }
 
+/**
+ * Hjálparfall fyrir gagnamöndl
+ *
+ * @param {*} file path á csv skrá
+ * @returns fylki sett saman úr upplýsingum úr csv skrá
+ */
 function getData(file) {
   const data = [];
   return new Promise((resolve, reject) => {
@@ -116,9 +147,15 @@ function getData(file) {
   });
 }
 
+/**
+ * Býr til gögn úr csv og setur í gagnagrunn
+ *
+ * @param {*} images fylki af myndum á Cloudinary
+ */
 export async function importData(images) {
   console.info('Starting import');
 
+  // Byrjum með seríur út af foreign key constraint
   const series = await getData('./data/series.csv');
   const genres = await importGenres(series);
 

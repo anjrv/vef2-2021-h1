@@ -11,9 +11,7 @@ import {
   lengthValidationError,
 } from '../utils/validation.js';
 
-const {
-  BCRYPT_ROUNDS: bcryptRounds = 11,
-} = process.env;
+const { BCRYPT_ROUNDS: bcryptRounds = 11 } = process.env;
 
 async function findByUsername(username) {
   const q = `
@@ -56,7 +54,7 @@ async function validateUser(
 ) {
   const validations = [];
 
-  // can't patch username
+  // Getum ekki patchað notandanafn
   if (!patching) {
     if (!isNotEmptyString(username, { min: 3, max: 32 })) {
       validations.push({
@@ -98,7 +96,7 @@ async function validateUser(
       const current = user.id;
 
       if (patching && id && current === toPositiveNumberOrDefault(id, 0)) {
-        // we can patch our own email
+        // Getum patchað okkur tölvupóst
       } else {
         validations.push({
           field: 'email',
@@ -138,6 +136,15 @@ async function findById(id) {
   return user.rows[0];
 }
 
+/**
+ * Bætir notanda við users töflu
+ *
+ * @param {String} username notandanafn
+ * @param {String} password lykilorð
+ * @param {String} email tölvupóst
+ * @param {boolean} admin hvort notandi á að vera admin (default = false)
+ * @returns niðurstaða á uppfærslu
+ */
 async function createUser(username, password, email, admin = false) {
   const hashedPassword = await bcrypt.hash(password, bcryptRounds);
 
@@ -149,14 +156,19 @@ async function createUser(username, password, email, admin = false) {
     RETURNING *`;
 
   const values = [xss(username), xss(email), hashedPassword, admin];
-  const result = await query(
-    q,
-    values,
-  );
+  const result = await query(q, values);
 
   return result.rows[0];
 }
 
+/**
+ * Framkvæmir uppfærslu á upplýsingum á notanda
+ *
+ * @param {int} id id gildi á notanda sem uppfæra á
+ * @param {String} password lykilorð hjá notanda
+ * @param {String} email email hjá notanda
+ * @returns niðurstaða á uppfærslu
+ */
 async function updateUser(id, password, email) {
   if (!isInt(id)) {
     return null;
@@ -173,13 +185,7 @@ async function updateUser(id, password, email) {
     hashedPassword = await bcrypt.hash(password, bcryptRounds);
   }
 
-  const values = [
-    hashedPassword,
-    isString(email) ? xss(email) : null,
-  ];
-
-  fields.push('updated');
-  values.push(new Date());
+  const values = [hashedPassword, isString(email) ? xss(email) : null];
 
   const result = await conditionalUpdate('users', id, fields, values);
 

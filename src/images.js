@@ -4,20 +4,20 @@ import path from 'path';
 import dotenv from 'dotenv';
 import cloudinary from 'cloudinary';
 
+import requireEnv from './utils/requireEnv.js';
 import debug from './utils/debug.js';
 
 dotenv.config();
+requireEnv(['CLOUDINARY_URL']);
 
 const {
-  CLOUDINARY_CLOUD,
-  CLOUDINARY_API_KEY,
-  CLOUDINARY_API_SECRET,
+  CLOUDINARY_URL,
 } = process.env;
 
 cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
+  cloud_name: CLOUDINARY_URL.substring(CLOUDINARY_URL.lastIndexOf('@') + 1),
+  api_key: CLOUDINARY_URL.substring(CLOUDINARY_URL.lastIndexOf('/') + 1, CLOUDINARY_URL.lastIndexOf(':')),
+  api_secret: CLOUDINARY_URL.substring(CLOUDINARY_URL.lastIndexOf(':') + 1, CLOUDINARY_URL.lastIndexOf('@')),
 });
 
 const readDirAsync = util.promisify(fs.readdir);
@@ -32,7 +32,6 @@ async function listImages() {
     return Promise.resolve(cachedListImages);
   }
 
-  // TODO, þarf mögulega að nota paging svo að þetta deyr ekki
   const res = await resourcesAsync({ max_results: 150 });
 
   cachedListImages = res.resources;

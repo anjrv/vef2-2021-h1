@@ -25,11 +25,22 @@ app.use((req, res, next) => {
 app.use(auth);
 app.use('/', api);
 
+/**
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ * @param {function} next Næsta middleware sem nota á
+ */
 function notFoundHandler(req, res, _next) {
   console.warn('Not found', req.originalUrl);
   res.status(404).json({ error: 'Not found' });
 }
 
+/**
+ * @param {object} err Villa sem kom upp í vinnslu
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ * @param {object} next næsta middleware sem nota á
+ */
 function errorHandler(err, req, res, _next) {
   console.error(err);
 
