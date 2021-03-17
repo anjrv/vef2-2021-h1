@@ -4,8 +4,8 @@ import { pagedQuery, query, conditionalUpdate } from '../db.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
 import { isInt } from '../utils/validation.js';
 
-// TODO: Validation for post and patch
-// TODO: Klára Seasons og Episodes POST
+// TODO: Validation
+// TODO: Klára Episodes
 // TODO: Bæta við genres, seasons ofl fyrir tv id GET
 // TODO: Prófa betur post, delete, patch
 // TODO: Skjala og refactor
@@ -21,6 +21,7 @@ async function seasonsRoute(req, res) {
 
 async function seasonsPostRoute(req, res) {
   // TODO: Validation og ath hvort season sé nú þegar til?
+  // TODO: Prófa
   const { id } = req.params;
 
   if (!Number.isInteger(Number(id))) {
@@ -41,7 +42,7 @@ async function seasonsPostRoute(req, res) {
     xss(req.body.airDate),
     xss(req.body.overview),
     xss(req.body.poster),
-    id,
+    id, // er þetta að virka?
   ];
 
   const result = await query(q, data);
@@ -58,8 +59,73 @@ async function seasonById(req, res) {
   return res.json(season.rows[0]);
 }
 
-async function episodesRoute(req, res) {
-  
+async function seasonDeleteRoute(req, res) {
+  // TODO: Prófa
+  const { id, number } = req.params;
+
+  if (!Number.isInteger(Number(id))) {
+    return res.status(404).json({ error: 'Series not found' });
+  }
+
+  const del = await query('DELETE FROM seasons WHERE serie = $1 AND number = $2', [id, number]);
+
+  if (del.rowCount === 1) {
+    return res.status(204).json({});
+  }
+
+  return res.status(404).json({ error: 'Season not found' });
+}
+
+async function episodesPostRoute(req, res) {
+  // TODO: Validation
+  // TODO: Prófa
+  const { id, number } = req.params;
+
+  const q = `
+  INSERT INTO episodes
+    (name, number, airDate, overview, season, serie)
+  VALUES
+    ($1, $2, $3, $4, $5, $6)
+  RETURNING *
+  `;
+
+  const data = [
+    xss(req.body.name),
+    xss(req.body.number),
+    xss(req.body.airDate),
+    xss(req.body.overview),
+    number,
+    id,
+  ];
+
+  const result = await query(q, data);
+
+  return res.status(201).json(result.rows[0]);
+}
+
+async function episodeRoute(req, res) {
+  const { id, number, episode } = req.params;
+
+  const episodes = await query('SELECT * FROM episodes WHERE serie = $1 AND season = $2 AND number = $3', [id, number, episode]);
+
+  return res.json(episodes.rows[0]);
+}
+
+async function episodeDeleteRoute(req, res) {
+  // TODO: Prófa
+  const { id, number, episode } = req.params;
+
+  if (!Number.isInteger(Number(id))) {
+    return res.status(404).json({ error: 'Series not found' });
+  }
+
+  const del = await query('DELETE FROM episodes WHERE serie = $1 AND season = $2 AND number = $3', [id, number, episode]);
+
+  if (del.rowCount === 1) {
+    return res.status(204).json({});
+  }
+
+  return res.status(404).json({ error: 'Episode not found' });
 }
 
 async function genresRoute(req, res) {
@@ -258,7 +324,11 @@ async function seriesDeleteRoute(req, res) {
 export {
   seasonsRoute,
   seasonsPostRoute,
+  seasonDeleteRoute,
   seasonById,
+  episodeRoute,
+  episodesPostRoute,
+  episodeDeleteRoute,
   genresRoute,
   genresPostRoute,
   seriesRoute,

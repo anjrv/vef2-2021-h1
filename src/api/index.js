@@ -4,6 +4,7 @@ import { requireAuth, checkUserIsAdmin } from '../authentication/auth.js';
 import {
   seasonsRoute,
   seasonsPostRoute,
+  seasonDeleteRoute,
   seasonById,
   seriesRoute,
   seriesById,
@@ -12,6 +13,9 @@ import {
   seriesDeleteRoute,
   genresRoute,
   genresPostRoute,
+  episodesPostRoute,
+  episodeRoute,
+  episodeDeleteRoute,
 } from './series.js';
 import {
   listUsers,
@@ -49,24 +53,23 @@ function indexRoute(req, res) {
     seasons: {
       seasons: {
         href: '/tv/{id}/season/',
-        methods: ['GET', 'DELETE'],
+        methods: ['GET', 'POST'],
       },
       season: {
         href: '/tv/{id}/season/{number}',
         methods: ['GET', 'DELETE'],
       },
     },
-    // TODO:
-    // episodes: {
-    //   episodes: {
-    //     href: '/tv/{id}/season/{number}/episode',
-    //     methods: ['POST'],
-    //   },
-    //   episode: {
-    //     href: '/tv/{id}/season/{number}/episode/{episode}',
-    //     methods: ['GET','DELETE'],
-    //   },
-    // },
+    episodes: {
+      episodes: {
+        href: '/tv/{id}/season/{number}/episode/',
+        methods: ['POST'],
+      },
+      episode: {
+        href: '/tv/{id}/season/{number}/episode/{episode}',
+        methods: ['GET', 'DELETE'],
+      },
+    },
     genres: {
       genres: {
         href: '/genres',
@@ -114,6 +117,10 @@ router.delete('/tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
 router.get('/tv/:id/season/', catchErrors(seasonsRoute));
 router.post('/tv/:id/season/', requireAdmin, catchErrors(seasonsPostRoute));
 router.get('/tv/:id/season/:number', catchErrors(seasonById));
+router.delete('/tv/:id/season/:number', requireAdmin, catchErrors(seasonDeleteRoute));
+router.post('/tv/:id/season/:number/episode/', requireAdmin, catchErrors(episodesPostRoute));
+router.get('/tv/:id/season/:number/episode/:episode', catchErrors(episodeRoute));
+router.delete('/tv/:id/season/:number/episode/:episode', requireAdmin, catchErrors(episodeDeleteRoute));
 
 router.get('/genres', catchErrors(genresRoute));
 router.post('/genres', requireAdmin, catchErrors(genresPostRoute));
