@@ -1,4 +1,8 @@
+import dotenv from 'dotenv';
+
 import { toPositiveNumberOrDefault } from './validation.js';
+
+dotenv.config();
 
 const {
   PORT: port = 3000,
