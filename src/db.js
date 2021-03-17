@@ -18,8 +18,8 @@ const ssl = nodeEnv !== 'development' ? { rejectUnauthorized: false } : false;
 /**
  * Framkvæmir skipun á gagnagrunn með gefnum upplýsingum
  *
- * @param {*} sqlQuery SQL skipun til að framkvæma
- * @param {*} values gildi til að setja inn í SQL skipun
+ * @param {String} sqlQuery SQL skipun til að framkvæma
+ * @param {object} values gildi til að setja inn í SQL skipun
  * @returns niðurstaða úr SQL query
  */
 async function query(sqlQuery, values = []) {
@@ -40,8 +40,8 @@ async function query(sqlQuery, values = []) {
 /**
  * Framkvæmir paged skipun á gagnagrunn með gefnum upplýsingum
  *
- * @param {*} sqlQuery SQL skipun til að framkvæma
- * @param {*} values gildi til að setja inn í SQL skipun
+ * @param {String} sqlQuery SQL skipun til að framkvæma
+ * @param {object} values gildi til að setja inn í SQL skipun
  * @returns niðurstaða úr SQL query
  */
 async function pagedQuery(
@@ -73,10 +73,10 @@ async function pagedQuery(
 /**
  * Framkvæmir uppfærslu á gagnagrunn ef hún er lögleg
  *
- * @param {*} table table til að uppfæra
- * @param {*} id id á hlut sem er verið að uppfæra
- * @param {*} fields upplýsingar sem á að breyta
- * @param {*} values gildi sem á að nota fyrir breytingum
+ * @param {String} table table til að uppfæra
+ * @param {int} id id á hlut sem er verið að uppfæra
+ * @param {object} fields upplýsingar sem á að breyta
+ * @param {object} values gildi sem á að nota fyrir breytingum
  * @returns niðurstaða úr færslu
  */
 async function conditionalUpdate(table, id, fields, values) {

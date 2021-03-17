@@ -6,7 +6,7 @@ import { query } from './db.js';
 /**
  * Býr til genre flokkar
  *
- * @param {Object} rows raðir til að vinna úr
+ * @param {object} rows raðir til að vinna úr
  * @returns samsettar genre flokkar
  */
 async function importGenres(rows) {
@@ -41,9 +41,9 @@ async function importGenres(rows) {
 /**
  * Setur seríu inn í gagnagrunn
  *
- * @param {*} series sería til að setja inn
- * @param {*} genres viðeigandi genres
- * @param {*} images fylki af Cloudinary myndum
+ * @param {object} series sería til að setja inn
+ * @param {object} genres viðeigandi genres
+ * @param {object} images fylki af Cloudinary myndum
  * @returns köll á query fyrir insert
  */
 async function importSeries(series, genres, images) {
@@ -76,8 +76,8 @@ async function importSeries(series, genres, images) {
 /**
  * Setur season inn í gagnagrunn
  *
- * @param {*} seasons season úr seríu
- * @param {*} images fylki af Cloudinary myndum
+ * @param {object} seasons season úr seríu
+ * @param {object} images fylki af Cloudinary myndum
  * @returns köll á query fyrir insert
  */
 async function importSeasons(seasons, images) {
@@ -103,7 +103,7 @@ async function importSeasons(seasons, images) {
 /**
  * Setur sjónvarpsþátt inn í gagnagrunn
  *
- * @param {*} episodes sjónvarsþátt
+ * @param {object} episodes sjónvarsþátt
  * @returns köll á query fyrir insert
  */
 async function importEpisodes(episodes) {
@@ -129,7 +129,7 @@ async function importEpisodes(episodes) {
 /**
  * Hjálparfall fyrir gagnamöndl
  *
- * @param {*} file path á csv skrá
+ * @param {object} file path á csv skrá
  * @returns fylki sett saman úr upplýsingum úr csv skrá
  */
 function getData(file) {
@@ -150,7 +150,7 @@ function getData(file) {
 /**
  * Býr til gögn úr csv og setur í gagnagrunn
  *
- * @param {*} images fylki af myndum á Cloudinary
+ * @param {object} images fylki af myndum á Cloudinary
  */
 export async function importData(images) {
   console.info('Starting import');

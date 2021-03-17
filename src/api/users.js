@@ -1,12 +1,15 @@
-import {
-  validateUser,
-  updateUser,
-  findById,
-} from '../authentication/users.js';
+import { validateUser, updateUser, findById } from '../authentication/users.js';
 import { query, pagedQuery } from '../db.js';
 import { isBoolean } from '../utils/validation.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
 
+/**
+ * Skilar fylki af notendum með paging
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @returns json of notenda upplýsingum
+ */
 async function listUsers(req, res) {
   const { offset = 0, limit = 10 } = req.query;
 
@@ -29,6 +32,13 @@ async function listUsers(req, res) {
   return res.json(usersWithPage);
 }
 
+/**
+ * Skilar notendaupplýsingum fyrir id úr req
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @returns json upplýsingar um notanda
+ */
 async function listUser(req, res) {
   const { id } = req.params;
 
@@ -41,6 +51,13 @@ async function listUser(req, res) {
   return res.json(user);
 }
 
+/**
+ * Route til að uppfæra upplýsingar um núverandi notanda eftir id
+ *
+ * @param {*} req req hlutur
+ * @param {*} res res hlutur
+ * @returns
+ */
 async function updateUserRoute(req, res) {
   const { id } = req.params;
   const { user: currentUser } = req;
@@ -81,6 +98,13 @@ async function updateUserRoute(req, res) {
   return res.status(201).json(result.rows[0]);
 }
 
+/**
+ * Upplýsingar um núveranda notenda
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @returns json upplýsingar
+ */
 async function currentUserRoute(req, res) {
   const { user: { id } = {} } = req;
 
@@ -93,6 +117,13 @@ async function currentUserRoute(req, res) {
   return res.json(user);
 }
 
+/**
+ * Uppfærir upplýsingar um notanda eftir id
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @returns
+ */
 async function updateCurrentUser(req, res) {
   const { id } = req.user;
 
