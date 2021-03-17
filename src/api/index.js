@@ -3,6 +3,7 @@ import catchErrors from '../utils/catchErrors.js';
 import { requireAuth, checkUserIsAdmin } from '../authentication/auth.js';
 import {
   seasonsRoute,
+  seasonsPostRoute,
   seasonById,
   seriesRoute,
   seriesById,
@@ -62,6 +63,7 @@ router.get('/tv/:id', catchErrors(seriesById));
 router.patch('/tv/:id', requireAdmin, catchErrors(seriesPatchRoute));
 router.delete('/tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
 router.get('/tv/:id/season/', catchErrors(seasonsRoute));
+router.post('/tv/:id/season/', requireAdmin, catchErrors(seasonsPostRoute));
 router.get('/tv/:id/season/:number', catchErrors(seasonById));
 
 router.get('/genres', catchErrors(genresRoute));
