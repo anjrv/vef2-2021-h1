@@ -21,30 +21,79 @@ import {
   updateCurrentUser,
 } from './users.js';
 
-const requireAdmin = [
-  requireAuth,
-  checkUserIsAdmin,
-];
+const requireAdmin = [requireAuth, checkUserIsAdmin];
 
 const router = express.Router();
 
 function indexRoute(req, res) {
   return res.json({
-    users: {
-      users: '/users',
-      user: '/users/{id}',
-      register: '/users/register',
-      login: '/users/login',
-      me: '/users/me',
-    },
     tv: {
-      series: '/tv',
-      serie: '/tv/{id}',
+      series: {
+        href: '/tv',
+        methods: ['GET', 'POST'],
+      },
+      serie: {
+        href: '/tv/{id}',
+        methods: ['GET', 'PATCH', 'DELETE'],
+      },
+      // TODO:
+      // rate: {
+      //   href: '/tv/{id}/rate',
+      //   methods: ['POST','PATCH','DELETE],
+      // },
+      // state: {
+      //  href: '/tv/{id}/state',
+      //  methods: ['POST, 'PATCH', 'DELETE],
+      // },
     },
-    genres: '/genres',
     seasons: {
-      seasons: '/tv/{id}/season/',
-      season: '/tv/{id}/season/{number}',
+      seasons: {
+        href: '/tv/{id}/season/',
+        methods: ['GET', 'DELETE'],
+      },
+      season: {
+        href: '/tv/{id}/season/{number}',
+        methods: ['GET', 'DELETE'],
+      },
+    },
+    // TODO:
+    // episodes: {
+    //   episodes: {
+    //     href: '/tv/{id}/season/{number}/episode',
+    //     methods: ['POST'],
+    //   },
+    //   episode: {
+    //     href: '/tv/{id}/season/{number}/episode/{episode}',
+    //     methods: ['GET','DELETE'],
+    //   },
+    // },
+    genres: {
+      genres: {
+        href: '/genres',
+        methods: ['GET', 'POST'],
+      },
+    },
+    users: {
+      users: {
+        href: '/users',
+        methods: ['GET'],
+      },
+      user: {
+        href: '/users/{id}',
+        methods: ['GET', 'PATCH'],
+      },
+      register: {
+        href: '/users/register',
+        methods: ['POST'],
+      },
+      login: {
+        href: '/users/login',
+        methods: ['POST'],
+      },
+      me: {
+        href: '/users/me',
+        methods: ['GET', 'PATCH'],
+      },
     },
   });
 }
