@@ -13,7 +13,7 @@ async function seasonsRoute(req, res) {
   const { offset = 0, limit = 10 } = req.query;
   const { id } = req.params;
 
-  const seasons = await pagedQuery('SELECT * FROM seasons WHERE serie = $1', [id], { offset, limit });
+  const seasons = await pagedQuery('SELECT * FROM seasons WHERE serie = $1 ORDER BY number ASC', [id], { offset, limit });
 
   return res.json(seasons);
 }

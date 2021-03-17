@@ -92,7 +92,7 @@ async function importSeasons(seasons, images) {
     seasons.name,
     seasons.number,
     seasons.airDate || null,
-    seasons.overview || null,
+    seasons.overview || '',
     images.get(seasons.poster),
     seasons.serieId,
   ];
