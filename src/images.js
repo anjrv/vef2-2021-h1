@@ -71,6 +71,12 @@ async function getImageIfUploaded(imagePath) {
   return found;
 }
 
+/**
+ * Uploadar mynd ef það er ekki nú þegar uploadað
+ *
+ * @param {*} imagePath path á mynd
+ * @returns path á sömu mynd á cloudinary
+ */
 async function uploadImageIfNotUploaded(imagePath) {
   const alreadyUploaded = await getImageIfUploaded(imagePath);
 
