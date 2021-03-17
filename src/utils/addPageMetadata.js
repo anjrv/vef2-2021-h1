@@ -6,6 +6,14 @@ const {
   BASE_URL: baseUrl = '',
 } = process.env;
 
+/**
+ * Bætir við viðeigandi metadata eins og við á (t.d. paging)
+ *
+ * @param {String} obj upplýsingar um metadata hlut
+ * @param {String} path path hlekk
+ * @param {object} param2 parameters
+ * @returns metadata bætt við
+ */
 export default function addPageMetadata(
   obj,
   path,

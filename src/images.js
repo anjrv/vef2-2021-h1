@@ -14,6 +14,7 @@ const {
   CLOUDINARY_URL,
 } = process.env;
 
+// Cloudinary config úr env
 cloudinary.config({
   cloud_name: CLOUDINARY_URL.substring(CLOUDINARY_URL.lastIndexOf('@') + 1),
   api_key: CLOUDINARY_URL.substring(CLOUDINARY_URL.lastIndexOf('/') + 1, CLOUDINARY_URL.lastIndexOf(':')),
@@ -27,6 +28,9 @@ const uploadAsync = util.promisify(cloudinary.v2.uploader.upload);
 
 let cachedListImages = null;
 
+/**
+ * @returns fylki af myndum
+ */
 async function listImages() {
   if (cachedListImages) {
     return Promise.resolve(cachedListImages);
@@ -39,10 +43,22 @@ async function listImages() {
   return res.resources;
 }
 
+/**
+ * Skoðar hvort stærðin á núverandi mynd er eins og á uploaded mynd
+ *
+ * @param {object} current núverandi mynd
+ * @returns niðurstaða
+ */
 function imageComparer(current) {
   return (uploaded) => uploaded.bytes === current.size;
 }
 
+/**
+ * Getter á mynd hlut
+ *
+ * @param {*} imagePath path á mynd sem á að leita eftir
+ * @returns path á sömu mynd á cloudinary
+ */
 async function getImageIfUploaded(imagePath) {
   const uploaded = await listImages();
 
@@ -69,6 +85,12 @@ async function uploadImageIfNotUploaded(imagePath) {
   return uploaded.secure_url;
 }
 
+/**
+ * Uploadar myndir úr imageDir ef þær eru ekki nú þegar til
+ *
+ * @param {*} imageDir path á möppu sem myndir eru í
+ * @returns map af mynd key value pairs: imagepath, image hlekk á cloudinary
+ */
 export async function uploadImagesFromDisk(imageDir) {
   const imagesFromDisk = await readDirAsync(imageDir);
 

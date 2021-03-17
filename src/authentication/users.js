@@ -11,8 +11,13 @@ import {
   lengthValidationError,
 } from '../utils/validation.js';
 
+// Sjálfgefið 11 umferðir
 const { BCRYPT_ROUNDS: bcryptRounds = 11 } = process.env;
 
+/**
+ * @param {String} username notandanafn
+ * @returns upplýsingar um notanda
+ */
 async function findByUsername(username) {
   const q = `
     SELECT
@@ -30,6 +35,10 @@ async function findByUsername(username) {
   return null;
 }
 
+/**
+ * @param {String} email netfang
+ * @returns upplýsingar um notanda
+ */
 async function findByEmail(email) {
   const q = `
     SELECT
@@ -47,6 +56,12 @@ async function findByEmail(email) {
   return null;
 }
 
+/**
+ * @param {object} param0 notandanafn, lykilorð og tölvupóst
+ * @param {boolean} patching hvort verið er að patcha
+ * @param {int} id id á notanda
+ * @returns niðurstaða
+ */
 async function validateUser(
   { username, password, email } = {},
   patching = false,
@@ -109,6 +124,13 @@ async function validateUser(
   return validations;
 }
 
+/**
+ * Hjálparfall til að skoða hvort lykilorð sé rétt
+ *
+ * @param {String} password lykilorð sem sleginn var inn
+ * @param {String} hash hash upplýsingar
+ * @returns niðurstaða úr samanburði
+ */
 async function comparePasswords(password, hash) {
   const result = await bcrypt.compare(password, hash);
 

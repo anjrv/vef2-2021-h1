@@ -3,7 +3,6 @@
  * Byrjar á að henda *öllu* sem er nú þegar til og býr til frá grunni.
  * Nyndir eru geymdar í Cloudinary.
  */
-
 import dotenv from 'dotenv';
 import util from 'util';
 import fs from 'fs';

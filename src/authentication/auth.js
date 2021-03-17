@@ -58,6 +58,14 @@ passport.use(new Strategy(jwtOptions, strat));
 
 app.use(passport.initialize());
 
+/**
+ * Skoðar hvort auth token er til staðar
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @param {function} next næsta middleware til að nota
+ * @returns næsta middleware eða villa
+ */
 function requireAuth(req, res, next) {
   return passport.authenticate('jwt', { session: false }, (err, user, info) => {
     if (err) {
@@ -77,6 +85,14 @@ function requireAuth(req, res, next) {
   })(req, res, next);
 }
 
+/**
+ * Middleware til að skoða hvort notandi sé admin
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @param {function} next næsta middleware sem á að nota
+ * @returns næsta middleware
+ */
 function checkUserIsAdmin(req, res, next) {
   if (req.user && req.user.admin) {
     return next();
@@ -85,6 +101,13 @@ function checkUserIsAdmin(req, res, next) {
   return res.status(403).json({ error: 'Forbidden' });
 }
 
+/**
+ * Route til að skrá nýjan notanda
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @returns json niðurstaða
+ */
 async function registerRoute(req, res) {
   const { username, password, email } = req.body;
 
@@ -101,6 +124,13 @@ async function registerRoute(req, res) {
   return res.status(201).json(result);
 }
 
+/**
+ * Route til að skrá inn sem notandi
+ *
+ * @param {object} req req hlutur
+ * @param {object} res res hlutur
+ * @returns notanda upplýsingar og auth token
+ */
 async function loginRoute(req, res) {
   const { username, password } = req.body;
 
@@ -152,8 +182,4 @@ async function loginRoute(req, res) {
 app.post('/users/register', catchErrors(registerRoute));
 app.post('/users/login', catchErrors(loginRoute));
 
-export {
-  app,
-  requireAuth,
-  checkUserIsAdmin,
-};
+export { app, requireAuth, checkUserIsAdmin };

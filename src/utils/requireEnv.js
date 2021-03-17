@@ -1,5 +1,10 @@
 import { isEmpty } from './validation.js';
 
+/**
+ * Hjálparfall til að skoða hvort umhverfi er rétt uppsett
+ *
+ * @param {object} vars environment variables
+ */
 export default function requireEnv(vars = []) {
   const missing = [];
 
