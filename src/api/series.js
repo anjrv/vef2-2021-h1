@@ -7,6 +7,7 @@ import { isInt } from '../utils/validation.js';
 // TODO: Validation for post and patch
 // TODO: Klára Seasons og Episodes POST
 // TODO: Bæta við genres, seasons ofl fyrir tv id GET
+// TODO: Prófa betur post, delete, patch
 // TODO: Skjala og refactor
 
 async function seasonsRoute(req, res) {
@@ -19,6 +20,33 @@ async function seasonsRoute(req, res) {
 }
 
 async function seasonsPostRoute(req, res) {
+  // TODO: Validation og ath hvort season sé nú þegar til?
+  const { id } = req.params;
+
+  if (!Number.isInteger(Number(id))) {
+    return res.status(404).json({ error: 'Series not found' });
+  }
+
+  const q = `
+  INSERT INTO seasons
+    (name, number, airDate, overview, poster, serie)
+  VALUES
+    ($1, $2, $3, $4, $5, $6)
+  RETURNING *
+  `;
+
+  const data = [
+    xss(req.body.name),
+    xss(req.body.number),
+    xss(req.body.airDate),
+    xss(req.body.overview),
+    xss(req.body.poster),
+    id,
+  ];
+
+  const result = await query(q, data);
+
+  return res.status(201).json(result.rows[0]);
 }
 
 async function seasonById(req, res) {
@@ -31,6 +59,7 @@ async function seasonById(req, res) {
 }
 
 async function episodesRoute(req, res) {
+  
 }
 
 async function genresRoute(req, res) {
@@ -228,6 +257,7 @@ async function seriesDeleteRoute(req, res) {
 
 export {
   seasonsRoute,
+  seasonsPostRoute,
   seasonById,
   genresRoute,
   genresPostRoute,
