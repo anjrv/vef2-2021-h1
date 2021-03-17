@@ -5,9 +5,7 @@ import { toPositiveNumberOrDefault } from './validation.js';
 dotenv.config();
 
 const {
-  PORT: port = 3000,
-  HOST: host = '127.0.0.1',
-  BASE_URL: baseUrl = '',
+  HOST_NAME: host = '127.0.0.1:3000',
 } = process.env;
 
 /**
@@ -33,11 +31,7 @@ export default function addPageMetadata(
 
   const newObj = { ...obj };
 
-  const url = new URL(path, baseUrl || `http://${host}`);
-
-  if (!baseUrl) {
-    url.port = port;
-  }
+  const url = new URL(path, `http://${host}`);
 
   newObj.links = {
     self: {
