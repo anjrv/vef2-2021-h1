@@ -9,60 +9,58 @@ import { query } from './db.js';
  * @param {object} rows raðir til að vinna úr
  * @returns samsettar genre flokkar
  */
-async function importGenres(rows) {
-  const genres = [];
+async function importGenres(genre) {
+  const q = `
+  INSERT INTO
+    genres
+    (name)
+  VALUES
+    ($1)`;
 
-  // Finna einstaka flokka
-  rows.forEach((row) => {
-    if (genres.indexOf(row.genres) < 0) {
-      genres.push(row.genres);
-    }
-  });
+  const values = [genre];
 
-  // breyta hverjum einstökum flokk í insert fyrir þann flokk
-  const q = 'INSERT INTO genres (name) VALUES ($1) RETURNING *';
-  const inserts = genres.map((c) => query(q, [c]));
+  return query(q, values);
+}
 
-  // inserta öllu og bíða
-  const results = await Promise.all(inserts);
+/**
+ * Setur genre inn í gagnagrunn
+ *
+ * @param {object} values gildi til að nota við innsetningu
+ * @returns köll á query fyrir insert
+ */
+async function importSerieGenre(values) {
+  const q = `
+  INSERT INTO
+    serie_genre
+    (serie, genre)
+  VALUES
+    ($1, $2)`;
 
-  const mapped = {};
-
-  // skila á forminu { NAFN: id, .. } svo að það sé auðvelt að fletta upp
-  results.forEach((r) => {
-    const [{ id, name }] = r.rows;
-
-    mapped[name] = id;
-  });
-
-  return mapped;
+  return query(q, values);
 }
 
 /**
  * Setur seríu inn í gagnagrunn
  *
  * @param {object} series sería til að setja inn
- * @param {object} genres viðeigandi genres
+ * @param {object} genres set af genres
  * @param {object} images fylki af Cloudinary myndum
  * @returns köll á query fyrir insert
  */
-async function importSeries(series, genres, images) {
+async function importSeries(series, images, genres) {
   const q = `
   INSERT INTO
     series
-    (id, name, airDate, genres, inProduction, tagline, image, description, language, network, homepage)
+    (id, name, airDate, inProduction, tagline, image, description, language, network, url)
   VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
-
-  const genre = genres[series.genres];
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`;
 
   const values = [
     series.id,
     series.name,
     series.airDate || null,
-    genre,
     series.inProduction || null,
-    series.tagline || null,
+    series.tagline || '',
     images.get(series.image),
     series.description || null,
     series.language || null,
@@ -70,7 +68,14 @@ async function importSeries(series, genres, images) {
     series.homepage || null,
   ];
 
-  return query(q, values);
+  await query(q, values);
+
+  const g = series.genres.split(',');
+  let vals;
+  for (let i = 0; i < g.length; i += 1) {
+    vals = [series.id, genres.indexOf(g[i]) + 1];
+    await importSerieGenre(vals);
+  }
 }
 
 /**
@@ -92,7 +97,7 @@ async function importSeasons(seasons, images) {
     seasons.name,
     seasons.number,
     seasons.airDate || null,
-    seasons.overview || '',
+    seasons.overview || null,
     images.get(seasons.poster),
     seasons.serieId,
   ];
@@ -157,10 +162,24 @@ export async function importData(images) {
 
   // Byrjum með seríur út af foreign key constraint
   const series = await getData('./data/series.csv');
-  const genres = await importGenres(series);
+  const genres = new Set();
 
   for (let i = 0; i < series.length; i += 1) {
-    await importSeries(series[i], genres, images);
+    const g = series[i].genres.split(',');
+    for (let j = 0; j < g.length; j += 1) {
+      genres.add(g[j]);
+    }
+  }
+
+  const gnrs = Array.from(genres);
+  gnrs.forEach(async (genre) => {
+    await importGenres(genre);
+  });
+
+  console.info('Genres imported');
+
+  for (let i = 0; i < series.length; i += 1) {
+    await importSeries(series[i], images, gnrs);
     console.info(`Imported ${series[i].name}`);
   }
 

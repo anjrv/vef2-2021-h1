@@ -14,7 +14,11 @@ async function seasonsRoute(req, res) {
   const { offset = 0, limit = 10 } = req.query;
   const { id } = req.params;
 
-  const seasons = await pagedQuery('SELECT * FROM seasons WHERE serie = $1 ORDER BY number ASC', [id], { offset, limit });
+  const seasons = await pagedQuery(
+    'SELECT * FROM seasons WHERE serie = $1 ORDER BY number ASC',
+    [id],
+    { offset, limit },
+  );
 
   return res.json(seasons);
 }
@@ -54,7 +58,10 @@ async function seasonById(req, res) {
   // TODO: á líka að skila fylki af þáttum
   const { id, number } = req.params;
 
-  const season = await query('SELECT * FROM seasons WHERE serie = $1 AND number = $2', [id, number]);
+  const season = await query(
+    'SELECT * FROM seasons WHERE serie = $1 AND number = $2',
+    [id, number],
+  );
 
   return res.json(season.rows[0]);
 }
@@ -67,7 +74,10 @@ async function seasonDeleteRoute(req, res) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  const del = await query('DELETE FROM seasons WHERE serie = $1 AND number = $2', [id, number]);
+  const del = await query(
+    'DELETE FROM seasons WHERE serie = $1 AND number = $2',
+    [id, number],
+  );
 
   if (del.rowCount === 1) {
     return res.status(204).json({});
@@ -106,7 +116,10 @@ async function episodesPostRoute(req, res) {
 async function episodeRoute(req, res) {
   const { id, number, episode } = req.params;
 
-  const episodes = await query('SELECT * FROM episodes WHERE serie = $1 AND season = $2 AND number = $3', [id, number, episode]);
+  const episodes = await query(
+    'SELECT * FROM episodes WHERE serie = $1 AND season = $2 AND number = $3',
+    [id, number, episode],
+  );
 
   return res.json(episodes.rows[0]);
 }
@@ -119,7 +132,10 @@ async function episodeDeleteRoute(req, res) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  const del = await query('DELETE FROM episodes WHERE serie = $1 AND season = $2 AND number = $3', [id, number, episode]);
+  const del = await query(
+    'DELETE FROM episodes WHERE serie = $1 AND season = $2 AND number = $3',
+    [id, number, episode],
+  );
 
   if (del.rowCount === 1) {
     return res.status(204).json({});
@@ -131,7 +147,10 @@ async function episodeDeleteRoute(req, res) {
 async function genresRoute(req, res) {
   const { offset = 0, limit = 10 } = req.query;
 
-  const genres = await pagedQuery('SELECT * FROM genres', [], { offset, limit });
+  const genres = await pagedQuery('SELECT * FROM genres', [], {
+    offset,
+    limit,
+  });
 
   return res.json(genres);
 }
@@ -147,7 +166,8 @@ async function findById(id) {
     FROM
       series
     WHERE id = $1
-  `, [id],
+  `,
+    [id],
   );
 
   if (series.rows.length !== 1) {
@@ -155,6 +175,35 @@ async function findById(id) {
   }
 
   return series.rows[0];
+}
+
+async function findSerieGenresById(serieID) {
+  if (!isInt(serieID)) {
+    return null;
+  }
+
+  const serieGenres = await query(
+    `SELECT
+      genre
+    FROM
+      serie_genre
+    WHERE serie = $1
+  `,
+    [serieID],
+  );
+
+  const genres = await query('SELECT * FROM genres');
+  const values = [];
+
+  serieGenres.rows.forEach((id) => {
+    genres.rows.forEach((row) => {
+      if (row.id === id.genre) {
+        values.push(row);
+      }
+    });
+  });
+
+  return values;
 }
 
 async function genresPostRoute(req, res) {
@@ -189,7 +238,7 @@ async function seriesRoute(req, res) {
       series.*
     FROM
       series
-    ORDER BY name ASC
+    ORDER BY id ASC
     `;
 
   const series = await pagedQuery(q, [], { offset, limit });
@@ -208,7 +257,7 @@ async function seriesPostRoute(req, res) {
 
   const q = `
     INSERT INTO series
-      (name, airDate, inProduction, tagline, image, description, language, network, homepage)
+      (name, airDate, inProduction, tagline, image, description, language, network, url)
     VALUES
       ($1, $2, $3, $4, $5, $6, $7, $8, $9 )
     RETURNING *
@@ -223,7 +272,7 @@ async function seriesPostRoute(req, res) {
     xss(req.body.description),
     xss(req.body.language),
     xss(req.body.network),
-    xss(req.body.homepage),
+    xss(req.body.url),
   ];
 
   const result = await query(q, data);
@@ -246,6 +295,16 @@ async function seriesById(req, res) {
   if (!series) {
     return res.status(404).json({ error: 'Series not found' });
   }
+
+  const serieGenres = await findSerieGenresById(series.id);
+  series.genres = serieGenres;
+
+  const serieSeasons = await query(
+    'SELECT * FROM seasons WHERE serie = $1 ORDER BY number ASC',
+    [id],
+  );
+
+  series.seasons = serieSeasons.rows;
 
   return res.json(series);
 }
@@ -275,7 +334,7 @@ async function seriesPatchRoute(req, res) {
     isset(req.body.description) ? 'description' : null,
     isset(req.body.language) ? 'language' : null,
     isset(req.body.network) ? 'network' : null,
-    isset(req.body.homepage) ? 'homepage' : null,
+    isset(req.body.url) ? 'url' : null,
   ];
 
   const values = [
@@ -287,7 +346,7 @@ async function seriesPatchRoute(req, res) {
     isset(req.body.description) ? xss(req.body.description) : null,
     isset(req.body.language) ? xss(req.body.language) : null,
     isset(req.body.network) ? xss(req.body.network) : null,
-    isset(req.body.homepage) ? xss(req.body.homepage) : null,
+    isset(req.body.url) ? xss(req.body.url) : null,
   ];
 
   const result = await conditionalUpdate('series', id, fields, values);

@@ -2,14 +2,13 @@ CREATE TABLE series (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
     airDate TIMESTAMP WITH TIME ZONE,
-    genres VARCHAR(256) NOT NULL,
     inProduction BOOLEAN,
     tagline VARCHAR(256),
-    image VARCHAR(256) NOT NULL,
+    image VARCHAR(256),
     description TEXT,
     language VARCHAR(256),
     network VARCHAR(256),
-    homepage VARCHAR(256)
+    url VARCHAR(256)
 );
 
 CREATE TABLE genres (

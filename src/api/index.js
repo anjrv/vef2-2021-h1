@@ -103,12 +103,6 @@ function indexRoute(req, res) {
 
 router.get('/', indexRoute);
 
-router.get('/users', requireAdmin, catchErrors(listUsers));
-router.get('/users/me', requireAuth, catchErrors(currentUser));
-router.patch('/users/me', requireAuth, catchErrors(updateCurrentUser));
-router.get('/users/:id', requireAdmin, catchErrors(listUser));
-router.patch('/users/:id', requireAdmin, catchErrors(updateUser));
-
 router.get('/tv', catchErrors(seriesRoute));
 router.post('/tv', requireAdmin, catchErrors(seriesPostRoute));
 router.get('/tv/:id', catchErrors(seriesById));
@@ -124,5 +118,11 @@ router.delete('/tv/:id/season/:number/episode/:episode', requireAdmin, catchErro
 
 router.get('/genres', catchErrors(genresRoute));
 router.post('/genres', requireAdmin, catchErrors(genresPostRoute));
+
+router.get('/users', requireAdmin, catchErrors(listUsers));
+router.get('/users/me', requireAuth, catchErrors(currentUser));
+router.patch('/users/me', requireAuth, catchErrors(updateCurrentUser));
+router.get('/users/:id', requireAdmin, catchErrors(listUser));
+router.patch('/users/:id', requireAdmin, catchErrors(updateUser));
 
 export { router };

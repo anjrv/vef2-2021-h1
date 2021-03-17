@@ -28,7 +28,7 @@ async function main() {
   console.info(`Set upp tengingu við Cloudinary á ${cloudinaryUrl}`);
 
   // Fylki með myndum og slóðum á Cloudinary
-  let images = [];
+  let images = new Map();
 
   // Henda töflum
   try {
@@ -63,7 +63,7 @@ async function main() {
   // Senda myndir á Cloudinary
   try {
     images = await uploadImagesFromDisk(imageFolder);
-    console.info(`Sendi ${images.length} myndir á Cloudinary`);
+    console.info(`Sendi ${images.size} myndir á Cloudinary`);
   } catch (e) {
     console.error('Villa við senda myndir á Cloudinary:', e.message);
   }
