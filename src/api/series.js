@@ -57,17 +57,15 @@ async function seasonsPostRoute(req, res) {
 async function seasonById(req, res) {
   const { id, number } = req.params;
 
-  let season = await query(
+  const season = await query(
     'SELECT * FROM seasons WHERE serie = $1 AND number = $2',
     [id, number],
   );
 
-  season = season.rows[0];
-
   const episodes = await query('SELECT * FROM episodes WHERE serie = $1 AND season = $2 ORDER BY number ASC', [id, number]);
-  season.episodes = episodes.rows;
+  season.rows[0].episodes = episodes.rows;
 
-  return res.json(season);
+  return res.json(season.rows[0]);
 }
 
 async function seasonDeleteRoute(req, res) {
