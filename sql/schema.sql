@@ -52,7 +52,9 @@ CREATE TABLE users (
     username VARCHAR(256) NOT NULL UNIQUE,
     email VARCHAR(256) NOT NULL UNIQUE,
     password VARCHAR(128) NOT NULL,
-    admin BOOLEAN DEFAULT false
+    admin BOOLEAN DEFAULT false,
+    created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
+    updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
 );
 
 CREATE TYPE state AS ENUM ('langar að horfa', 'er að horfa', 'hef horft');

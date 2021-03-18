@@ -21,7 +21,7 @@ const { BCRYPT_ROUNDS: bcryptRounds = 11 } = process.env;
 async function findByUsername(username) {
   const q = `
     SELECT
-      id, username, password, email, admin
+      *
     FROM
       users
     WHERE username = $1`;
@@ -42,7 +42,7 @@ async function findByUsername(username) {
 async function findByEmail(email) {
   const q = `
     SELECT
-      id, username, password, email, admin
+      *
     FROM
       users
     WHERE email = $1`;
@@ -144,7 +144,7 @@ async function findById(id) {
 
   const user = await query(
     `SELECT
-      id, username, email, admin
+      *
     FROM
       users
     WHERE id = $1`,
@@ -172,9 +172,9 @@ async function createUser(username, password, email, admin = false) {
 
   const q = `
     INSERT INTO
-      users (username, email, password, admin)
+      users (username, email, password)
     VALUES
-      ($1, $2, $3, $4)
+      ($1, $2, $3)
     RETURNING *`;
 
   const values = [xss(username), xss(email), hashedPassword, admin];
