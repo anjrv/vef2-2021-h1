@@ -1,5 +1,37 @@
 # Vefforritun 2, 2021, hópverkefni 1
 
+[Heroku](https://vef2-2021-h1.herokuapp.com/).
+
+### Unnin af:
+* Jaan Jaerving // JAJ20
+* Valgerður Kristinsdóttir // VAK9
+
+CLOUDINARY_URL=
+DATABASE_URL=
+HOST_NAME=
+JWT_TOKEN_LIFETIME=
+JWT_SECRET=
+
+Keyrt með:
+* Setja `CLOUDINARY_URL` í `.env`
+* Setja `DATABASE_URL` í `.env`
+* Setja `JWT_SECRET` í `.env`
+* `npm install` Til að sækja öll dependencies
+* `npm run setup` Til að uploada myndir og setja upp gagnagrunn
+* `npm test` Keyrir eslint og stylelint
+* `npm start` Keyrir upp vefþjón á localhost porti 3000
+* `npm run dev` Keyrir nodemon umhverfi
+
+Hægt er að skrá inn sem admin:
+* Notendanafn: admin
+* Lykilorð: 123
+
+Hægt er að skrá inn sem notandi:
+* Notendanafn: John
+* Lykilorð: 123
+
+# Verkefnislýsing
+
 Útfæra skal vefþjónustur fyrir sjónvarpsþáttavef:
 
 * Gefin eru/verða gögn fyrir sjónvarpsþætti, season og staka þætti sem flytja þarf inn í gagnagrunn

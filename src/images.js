@@ -56,7 +56,7 @@ function imageComparer(current) {
 /**
  * Getter á mynd hlut
  *
- * @param {*} imagePath path á mynd sem á að leita eftir
+ * @param {String} imagePath path á mynd sem á að leita eftir
  * @returns path á sömu mynd á cloudinary
  */
 async function getImageIfUploaded(imagePath) {
@@ -74,7 +74,7 @@ async function getImageIfUploaded(imagePath) {
 /**
  * Uploadar mynd ef það er ekki nú þegar uploadað
  *
- * @param {*} imagePath path á mynd
+ * @param {String} imagePath path á mynd
  * @returns path á sömu mynd á cloudinary
  */
 async function uploadImageIfNotUploaded(imagePath) {
@@ -94,7 +94,7 @@ async function uploadImageIfNotUploaded(imagePath) {
 /**
  * Uploadar myndir úr imageDir ef þær eru ekki nú þegar til
  *
- * @param {*} imageDir path á möppu sem myndir eru í
+ * @param {String} imageDir path á möppu sem myndir eru í
  * @returns map af mynd key value pairs: imagepath, image hlekk á cloudinary
  */
 export async function uploadImagesFromDisk(imageDir) {
