@@ -57,12 +57,12 @@ CREATE TABLE users (
 
 CREATE TYPE state AS ENUM ('langar að horfa', 'er að horfa', 'hef horft');
 
-CREATE TABLE users_episodes (
+CREATE TABLE users_series (
   id SERIAL PRIMARY KEY,
   "user" INTEGER NOT NULL,
-  episode INTEGER NOT NULL,
+  serie INTEGER NOT NULL,
   state state, -- ENUM fyrir states
   rating INTEGER CHECK (rating > -1 AND rating < 6),
-  CONSTRAINT episode FOREIGN KEY (episode) REFERENCES episodes (id),
+  CONSTRAINT serie FOREIGN KEY (serie) REFERENCES series (id),
   CONSTRAINT "user" FOREIGN KEY ("user") REFERENCES users (id)
 );
