@@ -55,15 +55,19 @@ async function seasonsPostRoute(req, res) {
 }
 
 async function seasonById(req, res) {
-  // TODO: á líka að skila fylki af þáttum
   const { id, number } = req.params;
 
-  const season = await query(
+  let season = await query(
     'SELECT * FROM seasons WHERE serie = $1 AND number = $2',
     [id, number],
   );
 
-  return res.json(season.rows[0]);
+  season = season.rows[0];
+
+  const episodes = await query('SELECT * FROM episodes WHERE serie = $1 AND season = $2 ORDER BY number ASC', [id, number]);
+  season.episodes = episodes.rows;
+
+  return res.json(season);
 }
 
 async function seasonDeleteRoute(req, res) {
