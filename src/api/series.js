@@ -1,162 +1,15 @@
 import xss from 'xss';
+import { findSerieGenresById } from './genres.js';
 import { pagedQuery, query, conditionalUpdate } from '../db.js';
 
 import addPageMetadata from '../utils/addPageMetadata.js';
 import { isInt } from '../utils/validation.js';
 
-// TODO: Validation
-// TODO: Klára Episodes
-// TODO: Bæta við genres, seasons ofl fyrir tv id GET
-// TODO: Prófa betur post, delete, patch
-// TODO: Skjala og refactor
-
-async function seasonsRoute(req, res) {
-  const { offset = 0, limit = 10 } = req.query;
-  const { id } = req.params;
-
-  const seasons = await pagedQuery(
-    'SELECT * FROM seasons WHERE serie = $1 ORDER BY number ASC',
-    [id],
-    { offset, limit },
-  );
-
-  return res.json(seasons);
-}
-
-async function seasonsPostRoute(req, res) {
-  // TODO: Validation og ath hvort season sé nú þegar til?
-  // TODO: Prófa
-  const { id } = req.params;
-
-  if (!Number.isInteger(Number(id))) {
-    return res.status(404).json({ error: 'Series not found' });
-  }
-
-  const q = `
-  INSERT INTO seasons
-    (name, number, airDate, overview, poster, serie)
-  VALUES
-    ($1, $2, $3, $4, $5, $6)
-  RETURNING *
-  `;
-
-  const data = [
-    xss(req.body.name),
-    xss(req.body.number),
-    xss(req.body.airDate),
-    xss(req.body.overview),
-    xss(req.body.poster),
-    id, // er þetta að virka?
-  ];
-
-  const result = await query(q, data);
-
-  return res.status(201).json(result.rows[0]);
-}
-
-async function seasonById(req, res) {
-  const { id, number } = req.params;
-
-  const season = await query(
-    'SELECT * FROM seasons WHERE serie = $1 AND number = $2',
-    [id, number],
-  );
-
-  const episodes = await query('SELECT * FROM episodes WHERE serie = $1 AND season = $2 ORDER BY number ASC', [id, number]);
-  season.rows[0].episodes = episodes.rows;
-
-  return res.json(season.rows[0]);
-}
-
-async function seasonDeleteRoute(req, res) {
-  // TODO: Prófa
-  const { id, number } = req.params;
-
-  if (!Number.isInteger(Number(id))) {
-    return res.status(404).json({ error: 'Series not found' });
-  }
-
-  const del = await query(
-    'DELETE FROM seasons WHERE serie = $1 AND number = $2',
-    [id, number],
-  );
-
-  if (del.rowCount === 1) {
-    return res.status(204).json({});
-  }
-
-  return res.status(404).json({ error: 'Season not found' });
-}
-
-async function episodesPostRoute(req, res) {
-  // TODO: Validation
-  // TODO: Prófa
-  const { id, number } = req.params;
-
-  const q = `
-  INSERT INTO episodes
-    (name, number, airDate, overview, season, serie)
-  VALUES
-    ($1, $2, $3, $4, $5, $6)
-  RETURNING *
-  `;
-
-  const data = [
-    xss(req.body.name),
-    xss(req.body.number),
-    xss(req.body.airDate),
-    xss(req.body.overview),
-    number,
-    id,
-  ];
-
-  const result = await query(q, data);
-
-  return res.status(201).json(result.rows[0]);
-}
-
-async function episodeRoute(req, res) {
-  const { id, number, episode } = req.params;
-
-  const episodes = await query(
-    'SELECT * FROM episodes WHERE serie = $1 AND season = $2 AND number = $3',
-    [id, number, episode],
-  );
-
-  return res.json(episodes.rows[0]);
-}
-
-async function episodeDeleteRoute(req, res) {
-  // TODO: Prófa
-  const { id, number, episode } = req.params;
-
-  if (!Number.isInteger(Number(id))) {
-    return res.status(404).json({ error: 'Series not found' });
-  }
-
-  const del = await query(
-    'DELETE FROM episodes WHERE serie = $1 AND season = $2 AND number = $3',
-    [id, number, episode],
-  );
-
-  if (del.rowCount === 1) {
-    return res.status(204).json({});
-  }
-
-  return res.status(404).json({ error: 'Episode not found' });
-}
-
-async function genresRoute(req, res) {
-  const { offset = 0, limit = 10 } = req.query;
-
-  const genres = await pagedQuery('SELECT * FROM genres', [], {
-    offset,
-    limit,
-  });
-
-  return res.json(genres);
-}
-
+/**
+ * Hjálparfall sem skilar sjónvarpsþætti fyrir id
+ * @param {*} id id sjónvarpsþáttar
+ * @returns sjónvarpsþáttur
+ */
 async function findById(id) {
   if (!isInt(id)) {
     return null;
@@ -179,59 +32,12 @@ async function findById(id) {
   return series.rows[0];
 }
 
-async function findSerieGenresById(serieID) {
-  if (!isInt(serieID)) {
-    return null;
-  }
-
-  const serieGenres = await query(
-    `SELECT
-      genre
-    FROM
-      serie_genre
-    WHERE serie = $1
-  `,
-    [serieID],
-  );
-
-  const genres = await query('SELECT * FROM genres');
-  const values = [];
-
-  serieGenres.rows.forEach((id) => {
-    genres.rows.forEach((row) => {
-      if (row.id === id.genre) {
-        values.push(row);
-      }
-    });
-  });
-
-  return values;
-}
-
-async function genresPostRoute(req, res) {
-  const { name } = req.body;
-
-  if (typeof name !== 'string' || name.length === 0 || name.length > 255) {
-    const message = 'Name is required, must not be empty or longer than 255 characters';
-    return res.status(400).json({
-      errors: [{ field: 'name', message }],
-    });
-  }
-
-  const cat = await query('SELECT * FROM genres WHERE name = $1', [name]);
-
-  if (cat.rows.length > 0) {
-    return res.status(400).json({
-      errors: [{ field: 'name', message: 'Genre already exists' }],
-    });
-  }
-
-  const q = 'INSERT INTO genres (name) VALUES ($1) RETURNING*';
-  const result = await query(q, [xss(name)]);
-
-  return res.status(201).json(result.rows[0]);
-}
-
+/**
+ * Skilar fylki af öllum sjónvarpsþáttum
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ * @returns json af sjónvarpsþáttaupplýsingum
+ */
 async function seriesRoute(req, res) {
   const { offset = 0, limit = 10 } = req.query;
 
@@ -254,9 +60,12 @@ async function seriesRoute(req, res) {
   return res.json(seriesWithPage);
 }
 
+/**
+ * Route til að búa til nýjan sjónvarpsþátt
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
 async function seriesPostRoute(req, res) {
-  // TODO: validation
-
   const q = `
     INSERT INTO series
       (name, airDate, inProduction, tagline, image, description, language, network, url)
@@ -282,13 +91,12 @@ async function seriesPostRoute(req, res) {
   return res.status(201).json(result.rows[0]);
 }
 
-// TODO:
-// Þarf líka meðal einkunn sjónvarpsþáttar,
-// fjölda einkunna sem hafa verið skráðar fyrir sjónvarpsþátt,
-// fylki af tegundum sjónvarpsþáttar (genres),
-// fylki af seasons,
-// rating notanda, (ef notandi)
-// staða notanda (ef notandi)
+/**
+ * Skilar upplýsingum um stakan sjónvarpsþátt fyrir gefið id
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ * @returns json af upplýsingum um sjónvarpsþátt
+ */
 async function seriesById(req, res) {
   const { id } = req.params;
 
@@ -311,8 +119,12 @@ async function seriesById(req, res) {
   return res.json(series);
 }
 
+/**
+ * Route til að uppfæra upplýsingar um sjónvarpsþátt fyrir id
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
 async function seriesPatchRoute(req, res) {
-  // TODO: Validation
   const { id } = req.params;
 
   if (!Number.isInteger(Number(id))) {
@@ -360,6 +172,11 @@ async function seriesPatchRoute(req, res) {
   return res.status(201).json(result.rows[0]);
 }
 
+/**
+ * Eyðir sjónvarpsþætti með gefið id
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
 async function seriesDeleteRoute(req, res) {
   const { id } = req.params;
 
@@ -383,15 +200,6 @@ async function seriesDeleteRoute(req, res) {
 }
 
 export {
-  seasonsRoute,
-  seasonsPostRoute,
-  seasonDeleteRoute,
-  seasonById,
-  episodeRoute,
-  episodesPostRoute,
-  episodeDeleteRoute,
-  genresRoute,
-  genresPostRoute,
   seriesRoute,
   seriesPostRoute,
   seriesById,

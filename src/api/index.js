@@ -2,21 +2,27 @@ import express from 'express';
 import catchErrors from '../utils/catchErrors.js';
 import { requireAuth, checkUserIsAdmin } from '../authentication/auth.js';
 import {
-  seasonsRoute,
-  seasonsPostRoute,
-  seasonDeleteRoute,
-  seasonById,
   seriesRoute,
   seriesById,
   seriesPostRoute,
   seriesPatchRoute,
   seriesDeleteRoute,
-  genresRoute,
-  genresPostRoute,
+} from './series.js';
+import {
+  seasonsRoute,
+  seasonsPostRoute,
+  seasonDeleteRoute,
+  seasonById,
+} from './seasons.js';
+import {
   episodesPostRoute,
   episodeRoute,
   episodeDeleteRoute,
-} from './series.js';
+} from './episodes.js';
+import {
+  genresRoute,
+  genresPostRoute,
+} from './genres.js';
 import {
   listUsers,
   listUser,
