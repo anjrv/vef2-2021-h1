@@ -51,12 +51,11 @@ async function importSeries(series, images, genres) {
   const q = `
   INSERT INTO
     series
-    (id, name, airDate, inProduction, tagline, image, description, language, network, url)
+    (name, airDate, inProduction, tagline, image, description, language, network, url)
   VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`;
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
 
   const values = [
-    series.id,
     series.name,
     series.airDate || null,
     series.inProduction || null,

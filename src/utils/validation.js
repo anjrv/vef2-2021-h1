@@ -33,7 +33,8 @@ function isString(s) {
 }
 
 function isBoolean(b) {
-  return typeof b === 'boolean';
+  const a = JSON.parse(b);
+  return (a === 'true' ? true : a === 'false');
 }
 
 function isDate(d) {

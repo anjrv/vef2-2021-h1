@@ -17,13 +17,15 @@ async function episodesPostRoute(req, res) {
 
   const validationMessage = await validateEpisode(req.body);
 
-  if (validationMessage.length > 0) {
+  if (validationMessage && validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
   }
 
+  const seasonId = await query('SELECT id FROM seasons WHERE serie = $1 AND number = $2', [id, number]);
+
   const q = `
   INSERT INTO episodes
-    (name, number, airDate, overview, season, seasonId, serie)
+    (name, number, airDate, overview, season, serie, seasonId)
   VALUES
     ($1, $2, $3, $4, $5, $6, $7)
   RETURNING *
@@ -32,11 +34,11 @@ async function episodesPostRoute(req, res) {
   const data = [
     xss(req.body.name),
     xss(req.body.number),
-    xss(req.body.airDate),
-    xss(req.body.overview),
+    xss(req.body.airDate) || null,
+    xss(req.body.overview) || null,
     number,
     id,
-    xss(req.body.seasonId),
+    seasonId.rows[0].id,
   ];
 
   const result = await query(q, data);

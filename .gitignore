@@ -9,6 +9,9 @@
 # production
 /build
 
+# multer storage
+/temp
+
 # misc
 .DS_Store
 .env.local

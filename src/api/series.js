@@ -1,4 +1,5 @@
 import xss from 'xss';
+import fs from 'fs';
 
 import { findSerieGenresById } from './genres.js';
 import { pagedQuery, query, conditionalUpdate } from '../db.js';
@@ -72,8 +73,8 @@ async function seriesPostRouteWithImage(req, res, next) {
   const validationMessage = await validateSeries(req.body);
 
   const { file: { path, mimetype } = {} } = req;
+
   const hasImage = Boolean(path && mimetype);
-  let image = null;
 
   if (hasImage) {
     if (!validateMimetype(mimetype)) {
@@ -89,10 +90,10 @@ async function seriesPostRouteWithImage(req, res, next) {
     return res.status(400).json({ errors: validationMessage });
   }
 
+  let image = null;
   if (hasImage) {
-    let upload = null;
     try {
-      upload = uploadImageIfNotUploaded(path);
+      image = await uploadImageIfNotUploaded(path);
     } catch (error) {
       if (error.http_code && error.http_code === 400) {
         return res.status(400).json({
@@ -108,13 +109,9 @@ async function seriesPostRouteWithImage(req, res, next) {
       console.error('Unable to upload file to cloudinary');
       return next(error);
     }
-
-    if (upload && upload.secure_url) {
-      image = upload;
-    } else {
-      return next(new Error('Cloudinary upload missing secure_url'));
-    }
   }
+
+  fs.rmdirSync('./temp', { recursive: true });
 
   const q = `
     INSERT INTO series
@@ -126,14 +123,14 @@ async function seriesPostRouteWithImage(req, res, next) {
 
   const data = [
     xss(req.body.name),
-    xss(req.body.airDate),
-    xss(req.body.inProduction),
-    xss(req.body.tagline),
+    xss(req.body.airDate) || null,
+    xss(JSON.parse(req.body.inProduction)) || null,
+    xss(req.body.tagline) || null,
     xss(image),
-    xss(req.body.description),
+    xss(req.body.description) || null,
     xss(req.body.language),
-    xss(req.body.network),
-    xss(req.body.url),
+    xss(req.body.network) || null,
+    xss(req.body.url) || null,
   ];
 
   const result = await query(q, data);
@@ -195,7 +192,6 @@ async function seriesPatchRouteWithImage(req, res, next) {
 
   const { file: { path, mimetype } = {} } = req;
   const hasImage = Boolean(path && mimetype);
-  let image = null;
 
   if (hasImage) {
     if (!validateMimetype(mimetype)) {
@@ -213,10 +209,10 @@ async function seriesPatchRouteWithImage(req, res, next) {
 
   const isset = (f) => typeof f === 'string' || typeof f === 'number';
 
+  let image = null;
   if (hasImage) {
-    let upload = null;
     try {
-      upload = uploadImageIfNotUploaded(path);
+      image = await uploadImageIfNotUploaded(path);
     } catch (error) {
       if (error.http_code && error.http_code === 400) {
         return res.status(400).json({
@@ -232,13 +228,9 @@ async function seriesPatchRouteWithImage(req, res, next) {
       console.error('Unable to upload file to cloudinary');
       return next(error);
     }
-
-    if (upload && upload.secure_url) {
-      image = upload;
-    } else {
-      return next(new Error('Cloudinary upload missing secure_url'));
-    }
   }
+
+  fs.rmdirSync('./temp', { recursive: true });
 
   const fields = [
     isset(req.body.name) ? 'name' : null,
@@ -255,7 +247,7 @@ async function seriesPatchRouteWithImage(req, res, next) {
   const values = [
     isset(req.body.name) ? xss(req.body.name) : null,
     isset(req.body.airdate) ? xss(req.body.airDate) : null,
-    isset(req.body.inProduction) ? xss(req.body.inProduction) : null,
+    isset(req.body.inProduction) ? xss(JSON.parse(req.body.inProduction)) : null,
     isset(req.body.tagline) ? xss(req.body.tagline) : null,
     isset(req.body.image) ? xss(image) : null,
     isset(req.body.description) ? xss(req.body.description) : null,

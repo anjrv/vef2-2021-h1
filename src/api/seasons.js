@@ -1,4 +1,5 @@
 import xss from 'xss';
+import fs from 'fs';
 
 import { pagedQuery, query } from '../db.js';
 import {
@@ -41,7 +42,6 @@ async function seasonsPostRouteWithImage(req, res, next) {
 
   const { file: { path, mimetype } = {} } = req;
   const hasImage = Boolean(path && mimetype);
-  let image = null;
 
   if (hasImage) {
     if (!validateMimetype(mimetype)) {
@@ -53,14 +53,14 @@ async function seasonsPostRouteWithImage(req, res, next) {
     }
   }
 
-  if (validationMessage.length > 0) {
+  if (validationMessage && validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
   }
 
+  let image = null;
   if (hasImage) {
-    let upload = null;
     try {
-      upload = uploadImageIfNotUploaded(path);
+      image = await uploadImageIfNotUploaded(path);
     } catch (error) {
       if (error.http_code && error.http_code === 400) {
         return res.status(400).json({
@@ -76,13 +76,9 @@ async function seasonsPostRouteWithImage(req, res, next) {
       console.error('Unable to upload file to cloudinary');
       return next(error);
     }
-
-    if (upload && upload.secure_url) {
-      image = upload;
-    } else {
-      return next(new Error('Cloudinary upload missing secure_url'));
-    }
   }
+
+  fs.rmdirSync('./temp', { recursive: true });
 
   const q = `
   INSERT INTO seasons
@@ -95,8 +91,8 @@ async function seasonsPostRouteWithImage(req, res, next) {
   const data = [
     xss(req.body.name),
     xss(req.body.number),
-    xss(req.body.airDate),
-    xss(req.body.overview),
+    xss(req.body.airDate) || null,
+    xss(req.body.overview) || null,
     xss(image),
     id,
   ];
