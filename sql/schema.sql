@@ -42,8 +42,8 @@ CREATE TABLE episodes (
     airDate TIMESTAMP WITH TIME ZONE,
     overview TEXT,
     season INTEGER NOT NULL CHECK (number > 0),
-    serie INTEGER NOT NULL,
     seasonId INTEGER NOT NULL,
+    serie INTEGER NOT NULL,
     CONSTRAINT seasonId FOREIGN KEY (seasonId) REFERENCES seasons (id),
     CONSTRAINT serie FOREIGN KEY (serie) REFERENCES series (id)
 );

@@ -23,9 +23,9 @@ async function episodesPostRoute(req, res) {
 
   const q = `
   INSERT INTO episodes
-    (name, number, airDate, overview, season, serie)
+    (name, number, airDate, overview, season, seasonId, serie)
   VALUES
-    ($1, $2, $3, $4, $5, $6)
+    ($1, $2, $3, $4, $5, $6, $7)
   RETURNING *
   `;
 
@@ -36,6 +36,7 @@ async function episodesPostRoute(req, res) {
     xss(req.body.overview),
     number,
     id,
+    xss(req.body.seasonId),
   ];
 
   const result = await query(q, data);
