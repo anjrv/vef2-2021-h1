@@ -38,7 +38,7 @@ async function seasonsPostRouteWithImage(req, res, next) {
     return null;
   }
 
-  const validationMessage = await validateSeason(req.body);
+  const validationMessage = await validateSeason(req.body) || [];
 
   const { file: { path, mimetype } = {} } = req;
   const hasImage = Boolean(path && mimetype);
@@ -46,11 +46,16 @@ async function seasonsPostRouteWithImage(req, res, next) {
   if (hasImage) {
     if (!validateMimetype(mimetype)) {
       validationMessage.push({
-        field: 'image',
+        field: 'poster',
         error: `Mimetype ${mimetype} is not legal. `
         + `Only ${MIMETYPES.join(', ')} are accepted`,
       });
     }
+  } else {
+    validationMessage.push({
+      field: 'poster',
+      error: 'no valid poster',
+    });
   }
 
   if (validationMessage && validationMessage.length > 0) {
@@ -108,7 +113,23 @@ async function seasonsPostRouteWithImage(req, res, next) {
  * @param {*} res response hlutur
  */
 async function seasonsPostRoute(req, res, next) {
-  return withMulter(req, res, next, seasonsPostRouteWithImage);
+  const { name, number, poster } = req.body;
+  if (name && number && poster) {
+    return withMulter(req, res, next, seasonsPostRouteWithImage);
+  }
+  return res.status(400).json({
+    'Required fields': [
+      {
+        field: 'name',
+      },
+      {
+        field: 'number',
+      },
+      {
+        field: 'poster',
+      },
+    ],
+  });
 }
 
 /**

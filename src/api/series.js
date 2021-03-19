@@ -70,7 +70,7 @@ async function seriesRoute(req, res) {
 }
 
 async function seriesPostRouteWithImage(req, res, next) {
-  const validationMessage = await validateSeries(req.body);
+  const validationMessage = await validateSeries(req.body) || [];
 
   const { file: { path, mimetype } = {} } = req;
 
@@ -80,10 +80,16 @@ async function seriesPostRouteWithImage(req, res, next) {
     if (!validateMimetype(mimetype)) {
       validationMessage.push({
         field: 'image',
-        error: `Mimetype ${mimetype} is not legal. `
-        + `Only ${MIMETYPES.join(', ')} are accepted`,
+        error:
+          `Mimetype ${mimetype} is not legal. `
+          + `Only ${MIMETYPES.join(', ')} are accepted`,
       });
     }
+  } else {
+    validationMessage.push({
+      field: 'image',
+      error: 'no valid image',
+    });
   }
 
   if (validationMessage && validationMessage.length > 0) {
@@ -121,12 +127,14 @@ async function seriesPostRouteWithImage(req, res, next) {
     RETURNING *
     `;
 
+  const inProd = req.body.inProduction ? JSON.parse(req.body.inProduction) : null;
+
   const data = [
     xss(req.body.name),
     xss(req.body.airDate) || null,
-    xss(JSON.parse(req.body.inProduction)) || null,
+    xss(inProd || null),
     xss(req.body.tagline) || null,
-    xss(image),
+    xss(image || null),
     xss(req.body.description) || null,
     xss(req.body.language),
     xss(req.body.network) || null,
@@ -144,7 +152,23 @@ async function seriesPostRouteWithImage(req, res, next) {
  * @param {*} res response hlutur
  */
 async function seriesPostRoute(req, res, next) {
-  return withMulter(req, res, next, seriesPostRouteWithImage);
+  const { name, image, language } = req.body;
+  if (name && image && language) {
+    return withMulter(req, res, next, seriesPostRouteWithImage);
+  }
+  return res.status(400).json({
+    'Required fields': [
+      {
+        field: 'name',
+      },
+      {
+        field: 'image',
+      },
+      {
+        field: 'language',
+      },
+    ],
+  });
 }
 
 /**
@@ -188,7 +212,7 @@ async function seriesPatchRouteWithImage(req, res, next) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  const validationMessage = await validateSeries(req.body, true);
+  const validationMessage = await validateSeries(req.body, true) || [];
 
   const { file: { path, mimetype } = {} } = req;
   const hasImage = Boolean(path && mimetype);
@@ -197,8 +221,9 @@ async function seriesPatchRouteWithImage(req, res, next) {
     if (!validateMimetype(mimetype)) {
       validationMessage.push({
         field: 'image',
-        error: `Mimetype ${mimetype} is not legal. `
-        + `Only ${MIMETYPES.join(', ')} are accepted`,
+        error:
+          `Mimetype ${mimetype} is not legal. `
+          + `Only ${MIMETYPES.join(', ')} are accepted`,
       });
     }
   }
@@ -247,7 +272,9 @@ async function seriesPatchRouteWithImage(req, res, next) {
   const values = [
     isset(req.body.name) ? xss(req.body.name) : null,
     isset(req.body.airdate) ? xss(req.body.airDate) : null,
-    isset(req.body.inProduction) ? xss(JSON.parse(req.body.inProduction)) : null,
+    isset(req.body.inProduction)
+      ? xss(JSON.parse(req.body.inProduction))
+      : null,
     isset(req.body.tagline) ? xss(req.body.tagline) : null,
     isset(req.body.image) ? xss(image) : null,
     isset(req.body.description) ? xss(req.body.description) : null,
