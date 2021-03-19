@@ -2,13 +2,16 @@ import xss from 'xss';
 
 import { query } from '../db.js';
 import { isInt, validateEpisode } from '../utils/validation.js';
+import debug from '../utils/debug.js';
 
 /**
  * Route til að búa til nýjan þátt (episode)
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function episodesPostRoute(req, res) {
+  debug(req.body);
   const { id, number } = req.params;
 
   if ((!isInt(id)) || (!isInt(number))) {
@@ -48,8 +51,9 @@ async function episodesPostRoute(req, res) {
 
 /**
  * Skilar upplýsingum um þátt fyrir gefið serie, season og id
- * @param {*} req request hlutur
- * @param {*} res reponse hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res reponse hlutur
  * @returns json af upplýsingum um þátt (episode)
  */
 async function episodeRoute(req, res) {
@@ -65,8 +69,9 @@ async function episodeRoute(req, res) {
 
 /**
  * Eyðir stökum þætti (episode)
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function episodeDeleteRoute(req, res) {
   const { id, number, episode } = req.params;

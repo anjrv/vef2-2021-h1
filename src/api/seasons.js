@@ -11,11 +11,13 @@ import {
 } from '../utils/validation.js';
 import withMulter from '../utils/withMulter.js';
 import { uploadImageIfNotUploaded } from '../images.js';
+import debug from '../utils/debug.js';
 
 /**
  * Skilar fylki af seasons fyrir sjónvarpsþátt með paging
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  * @returns json af seasons
  */
 async function seasonsRoute(req, res) {
@@ -109,10 +111,12 @@ async function seasonsPostRouteWithImage(req, res, next) {
 
 /**
  * Route til að búa til nýtt season fyrir sjónvarpsþátt
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seasonsPostRoute(req, res, next) {
+  debug(req.body);
   const { name, number, poster } = req.body;
   if (name && number && poster) {
     return withMulter(req, res, next, seasonsPostRouteWithImage);
@@ -134,8 +138,9 @@ async function seasonsPostRoute(req, res, next) {
 
 /**
  * Skilar upplýsingum um stakt season fyrir gefið id og serie
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  * @returns json af upplýsingum um sjónvarpsþátt
  */
 async function seasonById(req, res) {
@@ -157,8 +162,9 @@ async function seasonById(req, res) {
 
 /**
  * Eyðir season úr sjónvarpsþætti (series)
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seasonDeleteRoute(req, res) {
   const { id, number } = req.params;

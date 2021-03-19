@@ -13,10 +13,12 @@ import {
 import { uploadImageIfNotUploaded } from '../images.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
 import withMulter from '../utils/withMulter.js';
+import debug from '../utils/debug.js';
 
 /**
  * Hjálparfall sem skilar sjónvarpsþætti fyrir id
- * @param {*} id id sjónvarpsþáttar
+ *
+ * @param {int} id id sjónvarpsþáttar
  * @returns sjónvarpsþáttur
  */
 async function findById(id) {
@@ -43,8 +45,9 @@ async function findById(id) {
 
 /**
  * Skilar fylki af öllum sjónvarpsþáttum
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  * @returns json af sjónvarpsþáttaupplýsingum
  */
 async function seriesRoute(req, res) {
@@ -148,10 +151,12 @@ async function seriesPostRouteWithImage(req, res, next) {
 
 /**
  * Route til að búa til nýjan sjónvarpsþátt
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seriesPostRoute(req, res, next) {
+  debug(req.body);
   const { name, image, language } = req.body;
   if (name && image && language) {
     return withMulter(req, res, next, seriesPostRouteWithImage);
@@ -173,8 +178,9 @@ async function seriesPostRoute(req, res, next) {
 
 /**
  * Skilar upplýsingum um stakan sjónvarpsþátt fyrir gefið id
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  * @returns json af upplýsingum um sjónvarpsþátt
  */
 async function seriesById(req, res) {
@@ -294,17 +300,20 @@ async function seriesPatchRouteWithImage(req, res, next) {
 
 /**
  * Route til að uppfæra upplýsingar um sjónvarpsþátt fyrir id
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seriesPatchRoute(req, res, next) {
+  debug(req.body);
   return withMulter(req, res, next, seriesPatchRouteWithImage);
 }
 
 /**
  * Eyðir sjónvarpsþætti með gefið id
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seriesDeleteRoute(req, res) {
   const { id } = req.params;
