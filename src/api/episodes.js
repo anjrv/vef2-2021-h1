@@ -1,6 +1,6 @@
 import xss from 'xss';
 import { query } from '../db.js';
-
+import { isInt } from '../utils/validation.js';
 
 /**
  * Route til að búa til nýjan þátt (episode)
@@ -8,8 +8,6 @@ import { query } from '../db.js';
  * @param {*} res response hlutur
  */
 async function episodesPostRoute(req, res) {
-  // TODO: Validation
-  // TODO: Prófa
   const { id, number } = req.params;
 
   const q = `
@@ -59,8 +57,8 @@ async function episodeRoute(req, res) {
 async function episodeDeleteRoute(req, res) {
   const { id, number, episode } = req.params;
 
-  if (!Number.isInteger(Number(id))) {
-    return res.status(404).json({ error: 'Series not found' });
+  if (!isInt(id)) {
+    return null;
   }
 
   const del = await query(

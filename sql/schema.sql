@@ -4,9 +4,9 @@ CREATE TABLE series (
     airDate TIMESTAMP WITH TIME ZONE,
     inProduction BOOLEAN,
     tagline VARCHAR(256),
-    image VARCHAR(256),
+    image VARCHAR(256) NOT NULL,
     description TEXT,
-    language VARCHAR(256),
+    language VARCHAR(256) NOT NULL,
     network VARCHAR(256),
     url VARCHAR(256)
 );

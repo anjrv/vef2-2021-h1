@@ -3,7 +3,7 @@ import { findSerieGenresById } from './genres.js';
 import { pagedQuery, query, conditionalUpdate } from '../db.js';
 
 import addPageMetadata from '../utils/addPageMetadata.js';
-import { isInt } from '../utils/validation.js';
+import { isInt, validateSeries } from '../utils/validation.js';
 
 /**
  * Hjálparfall sem skilar sjónvarpsþætti fyrir id
@@ -66,6 +66,12 @@ async function seriesRoute(req, res) {
  * @param {*} res response hlutur
  */
 async function seriesPostRoute(req, res) {
+  const validationMessage = await validateSeries(req.body);
+
+  if (validationMessage.length > 0) {
+    return res.status(400).json({ errors: validationMessage });
+  }
+
   const q = `
     INSERT INTO series
       (name, airDate, inProduction, tagline, image, description, language, network, url)
@@ -127,14 +133,20 @@ async function seriesById(req, res) {
 async function seriesPatchRoute(req, res) {
   const { id } = req.params;
 
-  if (!Number.isInteger(Number(id))) {
-    return res.status(404).json({ error: 'Series not found' });
+  if (!isInt(id)) {
+    return null;
   }
 
   const series = await findById(id);
 
   if (!series) {
     return res.status(404).json({ error: 'Series not found' });
+  }
+
+  const validationMessage = await validateSeries(req.body, id, true);
+
+  if (validationMessage.length > 0) {
+    return res.status(400).json({ errors: validationMessage });
   }
 
   const isset = (f) => typeof f === 'string' || typeof f === 'number';
@@ -180,8 +192,8 @@ async function seriesPatchRoute(req, res) {
 async function seriesDeleteRoute(req, res) {
   const { id } = req.params;
 
-  if (!Number.isInteger(Number(id))) {
-    return res.status(404).json({ error: 'Series not found' });
+  if (!isInt(id)) {
+    return null;
   }
 
   const series = await findById(id);
