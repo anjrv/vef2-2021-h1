@@ -153,7 +153,6 @@ async function validateSeason({
   airDate,
   overview,
   poster,
-  serie,
 } = {}, patch = false) {
   const messages = [];
 
@@ -191,13 +190,6 @@ async function validateSeason({
     messages.push({
       field: 'overview',
       message: 'Overview must be a string',
-    });
-  }
-
-  if (!isInt(serie) && Number(serie) > 0) {
-    messages.push({
-      field: 'serie',
-      message: 'serie id is required and must be an integer larger than 0',
     });
   }
 }
