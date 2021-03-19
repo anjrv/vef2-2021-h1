@@ -194,6 +194,45 @@ async function validateSeason({
   }
 }
 
+async function validateEpisode({
+  name,
+  number,
+  airDate,
+  overview,
+} = {}, patch = false) {
+  const messages = [];
+
+  if (!patch || name || isEmpty(name)) {
+    if ((typeof name !== 'string' || name.length === 0 || name.length > 255)) {
+      messages.push({
+        field: 'name',
+        message: 'Name is required and must not be empty and no longer than 255 charcters',
+      });
+    }
+  }
+
+  if (!isInt(number) && Number(number) > 0) {
+    messages.push({
+      field: 'number',
+      message: 'number is required and must be an integer larger than 0',
+    });
+  }
+
+  if (!isDate(airDate)) {
+    messages.push({
+      field: 'airDate',
+      message: 'airDate must be a date',
+    });
+  }
+
+  if (invalidField(overview)) {
+    messages.push({
+      field: 'overview',
+      message: 'Overview must be a string',
+    });
+  }
+}
+
 export {
   isEmpty,
   isString,
@@ -204,4 +243,5 @@ export {
   lengthValidationError,
   validateSeries,
   validateSeason,
+  validateEpisode,
 };

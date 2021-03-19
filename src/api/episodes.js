@@ -1,6 +1,6 @@
 import xss from 'xss';
 import { query } from '../db.js';
-import { isInt } from '../utils/validation.js';
+import { isInt, validateEpisode } from '../utils/validation.js';
 
 /**
  * Route til að búa til nýjan þátt (episode)
@@ -9,6 +9,16 @@ import { isInt } from '../utils/validation.js';
  */
 async function episodesPostRoute(req, res) {
   const { id, number } = req.params;
+
+  if ((!isInt(id)) || (!isInt(number))) {
+    return null;
+  }
+
+  const validationMessage = await validateEpisode(req.body);
+
+  if (validationMessage.length > 0) {
+    return res.status(400).json({ errors: validationMessage });
+  }
 
   const q = `
   INSERT INTO episodes
