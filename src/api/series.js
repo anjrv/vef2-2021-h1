@@ -143,7 +143,7 @@ async function seriesPatchRoute(req, res) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  const validationMessage = await validateSeries(req.body, id, true);
+  const validationMessage = await validateSeries(req.body, true);
 
   if (validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });

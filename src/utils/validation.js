@@ -1,6 +1,3 @@
-// Eslint vill þetta ekki
-import { query } from '../db.js';
-
 const invalidField = (s, maxlen) => {
   if (s !== undefined && typeof s !== 'string') {
     return true;
@@ -27,6 +24,11 @@ function isString(s) {
 
 function isBoolean(b) {
   return typeof b === 'boolean';
+}
+
+function isDate(d) {
+  const valid = (new Date(d)).getTime() > 0;
+  return valid;
 }
 
 function lengthValidationError(s, min, max) {
@@ -64,8 +66,8 @@ function toPositiveNumberOrDefault(value, defaultValue) {
 }
 
 async function validateSeries({
-  // Genre??
   name,
+  airDate,
   inProduction,
   tagline,
   image,
@@ -73,7 +75,7 @@ async function validateSeries({
   language,
   network,
   url,
-} = {}, id = null, patch = false) {
+} = {}, patch = false) {
   const messages = [];
 
   if (!patch || name || isEmpty(name)) {
@@ -85,16 +87,11 @@ async function validateSeries({
     }
   }
 
-  if (!patch || name || isEmpty(name)) {
-    const series = await query('SELECT * FROM series WHERE name = $1', [name]);
-
-    // leyfum að uppfæra titil í sama titil
-    if (series.rows.length > 0 && (Number(series.rows[0].id) !== Number(id))) {
-      messages.push({
-        field: 'name',
-        message: `Series "${name}" already exists`,
-      });
-    }
+  if (!isDate(airDate)) {
+    messages.push({
+      field: 'airDate',
+      message: 'airDate must be a date',
+    });
   }
 
   if (language !== undefined
@@ -150,6 +147,61 @@ async function validateSeries({
   return messages;
 }
 
+async function validateSeason({
+  name,
+  number,
+  airDate,
+  overview,
+  poster,
+  serie,
+} = {}, patch = false) {
+  const messages = [];
+
+  if (!patch || name || isEmpty(name)) {
+    if ((typeof name !== 'string' || name.length === 0 || name.length > 255)) {
+      messages.push({
+        field: 'name',
+        message: 'Name is required and must not be empty and no longer than 255 charcters',
+      });
+    }
+  }
+
+  if (!isInt(number) && Number(number) > 0) {
+    messages.push({
+      field: 'number',
+      message: 'number is required and must be an integer larger than 0',
+    });
+  }
+
+  if (!isDate(airDate)) {
+    messages.push({
+      field: 'airDate',
+      message: 'airDate must be a date',
+    });
+  }
+
+  if (invalidField(poster)) {
+    messages.push({
+      field: 'poster',
+      message: 'Poster must be a path to an image',
+    });
+  }
+
+  if (invalidField(overview)) {
+    messages.push({
+      field: 'overview',
+      message: 'Overview must be a string',
+    });
+  }
+
+  if (!isInt(serie) && Number(serie) > 0) {
+    messages.push({
+      field: 'serie',
+      message: 'serie id is required and must be an integer larger than 0',
+    });
+  }
+}
+
 export {
   isEmpty,
   isString,
@@ -159,4 +211,5 @@ export {
   toPositiveNumberOrDefault,
   lengthValidationError,
   validateSeries,
+  validateSeason,
 };

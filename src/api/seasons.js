@@ -1,7 +1,7 @@
 import xss from 'xss';
 import { pagedQuery, query } from '../db.js';
 
-import { isInt } from '../utils/validation.js';
+import { isInt, validateSeason } from '../utils/validation.js';
 
 /**
  * Skilar fylki af seasons fyrir sjónvarpsþátt með paging
@@ -32,6 +32,12 @@ async function seasonsPostRoute(req, res) {
 
   if (!isInt(id)) {
     return null;
+  }
+
+  const validationMessage = await validateSeason(req.body);
+
+  if (validationMessage.length > 0) {
+    return res.status(400).json({ errors: validationMessage });
   }
 
   const q = `
