@@ -1,9 +1,17 @@
 import xss from 'xss';
+
 import { findSerieGenresById } from './genres.js';
 import { pagedQuery, query, conditionalUpdate } from '../db.js';
-
+import {
+  isInt,
+  validateSeries,
+  validateMimetype,
+  toPositiveNumberOrDefault,
+  MIMETYPES,
+} from '../utils/validation.js';
+import { uploadImageIfNotUploaded } from '../images.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
-import { isInt, validateSeries } from '../utils/validation.js';
+import withMulter from '../utils/withMulter.js';
 
 /**
  * Hjálparfall sem skilar sjónvarpsþætti fyrir id
@@ -60,16 +68,52 @@ async function seriesRoute(req, res) {
   return res.json(seriesWithPage);
 }
 
-/**
- * Route til að búa til nýjan sjónvarpsþátt
- * @param {*} req request hlutur
- * @param {*} res response hlutur
- */
-async function seriesPostRoute(req, res) {
+async function seriesPostRouteWithImage(req, res, next) {
   const validationMessage = await validateSeries(req.body);
+
+  const { file: { path, mimetype } = {} } = req;
+  const hasImage = Boolean(path && mimetype);
+  let image = null;
+
+  if (hasImage) {
+    if (!validateMimetype(mimetype)) {
+      validationMessage.push({
+        field: 'image',
+        error: `Mimetype ${mimetype} is not legal. `
+        + `Only ${MIMETYPES.join(', ')} are accepted`,
+      });
+    }
+  }
 
   if (validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
+  }
+
+  if (hasImage) {
+    let upload = null;
+    try {
+      upload = uploadImageIfNotUploaded(path);
+    } catch (error) {
+      if (error.http_code && error.http_code === 400) {
+        return res.status(400).json({
+          errors: [
+            {
+              field: 'image',
+              error: error.message,
+            },
+          ],
+        });
+      }
+
+      console.error('Unable to upload file to cloudinary');
+      return next(error);
+    }
+
+    if (upload && upload.secure_url) {
+      image = upload;
+    } else {
+      return next(new Error('Cloudinary upload missing secure_url'));
+    }
   }
 
   const q = `
@@ -85,7 +129,7 @@ async function seriesPostRoute(req, res) {
     xss(req.body.airDate),
     xss(req.body.inProduction),
     xss(req.body.tagline),
-    xss(req.body.image),
+    xss(image),
     xss(req.body.description),
     xss(req.body.language),
     xss(req.body.network),
@@ -95,6 +139,15 @@ async function seriesPostRoute(req, res) {
   const result = await query(q, data);
 
   return res.status(201).json(result.rows[0]);
+}
+
+/**
+ * Route til að búa til nýjan sjónvarpsþátt
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
+async function seriesPostRoute(req, res, next) {
+  return withMulter(req, res, next, seriesPostRouteWithImage);
 }
 
 /**
@@ -125,12 +178,7 @@ async function seriesById(req, res) {
   return res.json(series);
 }
 
-/**
- * Route til að uppfæra upplýsingar um sjónvarpsþátt fyrir id
- * @param {*} req request hlutur
- * @param {*} res response hlutur
- */
-async function seriesPatchRoute(req, res) {
+async function seriesPatchRouteWithImage(req, res, next) {
   const { id } = req.params;
 
   if (!isInt(id)) {
@@ -145,11 +193,52 @@ async function seriesPatchRoute(req, res) {
 
   const validationMessage = await validateSeries(req.body, true);
 
+  const { file: { path, mimetype } = {} } = req;
+  const hasImage = Boolean(path && mimetype);
+  let image = null;
+
+  if (hasImage) {
+    if (!validateMimetype(mimetype)) {
+      validationMessage.push({
+        field: 'image',
+        error: `Mimetype ${mimetype} is not legal. `
+        + `Only ${MIMETYPES.join(', ')} are accepted`,
+      });
+    }
+  }
+
   if (validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
   }
 
   const isset = (f) => typeof f === 'string' || typeof f === 'number';
+
+  if (hasImage) {
+    let upload = null;
+    try {
+      upload = uploadImageIfNotUploaded(path);
+    } catch (error) {
+      if (error.http_code && error.http_code === 400) {
+        return res.status(400).json({
+          errors: [
+            {
+              field: 'image',
+              error: error.message,
+            },
+          ],
+        });
+      }
+
+      console.error('Unable to upload file to cloudinary');
+      return next(error);
+    }
+
+    if (upload && upload.secure_url) {
+      image = upload;
+    } else {
+      return next(new Error('Cloudinary upload missing secure_url'));
+    }
+  }
 
   const fields = [
     isset(req.body.name) ? 'name' : null,
@@ -168,7 +257,7 @@ async function seriesPatchRoute(req, res) {
     isset(req.body.airdate) ? xss(req.body.airDate) : null,
     isset(req.body.inProduction) ? xss(req.body.inProduction) : null,
     isset(req.body.tagline) ? xss(req.body.tagline) : null,
-    isset(req.body.image) ? xss(req.body.image) : null,
+    isset(req.body.image) ? xss(image) : null,
     isset(req.body.description) ? xss(req.body.description) : null,
     isset(req.body.language) ? xss(req.body.language) : null,
     isset(req.body.network) ? xss(req.body.network) : null,
@@ -182,6 +271,15 @@ async function seriesPatchRoute(req, res) {
   }
 
   return res.status(201).json(result.rows[0]);
+}
+
+/**
+ * Route til að uppfæra upplýsingar um sjónvarpsþátt fyrir id
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
+async function seriesPatchRoute(req, res, next) {
+  return withMulter(req, res, next, seriesPatchRouteWithImage);
 }
 
 /**
@@ -201,6 +299,16 @@ async function seriesDeleteRoute(req, res) {
   if (!series) {
     return res.status(404).json({ error: 'Series not found' });
   }
+
+  const countQuery = 'SELECT COUNT(*) FROM seasons WHERE serie = $1';
+  const countResult = await query(countQuery, [id]);
+  const { count } = countResult.rows[0];
+
+  if (toPositiveNumberOrDefault(count, 0) > 0) {
+    return res.status(400).json({ error: 'Serie is not empty' });
+  }
+
+  await query('DELETE FROM serie_genre WHERE serie = $1', [id]);
 
   const del = await query('DELETE FROM series WHERE id = $1', [id]);
 

@@ -1,7 +1,15 @@
 import xss from 'xss';
-import { pagedQuery, query } from '../db.js';
 
-import { isInt, validateSeason } from '../utils/validation.js';
+import { pagedQuery, query } from '../db.js';
+import {
+  isInt,
+  validateSeason,
+  validateMimetype,
+  toPositiveNumberOrDefault,
+  MIMETYPES,
+} from '../utils/validation.js';
+import withMulter from '../utils/withMulter.js';
+import { uploadImageIfNotUploaded } from '../images.js';
 
 /**
  * Skilar fylki af seasons fyrir sjónvarpsþátt með paging
@@ -22,12 +30,7 @@ async function seasonsRoute(req, res) {
   return res.json(seasons);
 }
 
-/**
- * Route til að búa til nýtt season fyrir sjónvarpsþátt
- * @param {*} req request hlutur
- * @param {*} res response hlutur
- */
-async function seasonsPostRoute(req, res) {
+async function seasonsPostRouteWithImage(req, res, next) {
   const { id } = req.params;
 
   if (!isInt(id)) {
@@ -36,8 +39,49 @@ async function seasonsPostRoute(req, res) {
 
   const validationMessage = await validateSeason(req.body);
 
+  const { file: { path, mimetype } = {} } = req;
+  const hasImage = Boolean(path && mimetype);
+  let image = null;
+
+  if (hasImage) {
+    if (!validateMimetype(mimetype)) {
+      validationMessage.push({
+        field: 'image',
+        error: `Mimetype ${mimetype} is not legal. `
+        + `Only ${MIMETYPES.join(', ')} are accepted`,
+      });
+    }
+  }
+
   if (validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
+  }
+
+  if (hasImage) {
+    let upload = null;
+    try {
+      upload = uploadImageIfNotUploaded(path);
+    } catch (error) {
+      if (error.http_code && error.http_code === 400) {
+        return res.status(400).json({
+          errors: [
+            {
+              field: 'image',
+              error: error.message,
+            },
+          ],
+        });
+      }
+
+      console.error('Unable to upload file to cloudinary');
+      return next(error);
+    }
+
+    if (upload && upload.secure_url) {
+      image = upload;
+    } else {
+      return next(new Error('Cloudinary upload missing secure_url'));
+    }
   }
 
   const q = `
@@ -53,13 +97,22 @@ async function seasonsPostRoute(req, res) {
     xss(req.body.number),
     xss(req.body.airDate),
     xss(req.body.overview),
-    xss(req.body.poster),
+    xss(image),
     id,
   ];
 
   const result = await query(q, data);
 
   return res.status(201).json(result.rows[0]);
+}
+
+/**
+ * Route til að búa til nýtt season fyrir sjónvarpsþátt
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
+async function seasonsPostRoute(req, res, next) {
+  return withMulter(req, res, next, seasonsPostRouteWithImage);
 }
 
 /**
@@ -76,7 +129,10 @@ async function seasonById(req, res) {
     [id, number],
   );
 
-  const episodes = await query('SELECT * FROM episodes WHERE serie = $1 AND season = $2 ORDER BY number ASC', [id, number]);
+  const episodes = await query(
+    'SELECT * FROM episodes WHERE serie = $1 AND season = $2 ORDER BY number ASC',
+    [id, number],
+  );
   season.rows[0].episodes = episodes.rows;
 
   return res.json(season.rows[0]);
@@ -94,6 +150,14 @@ async function seasonDeleteRoute(req, res) {
     return null;
   }
 
+  const countQuery = 'SELECT COUNT(*) FROM episodes WHERE serie = $1 AND season = $2';
+  const countResult = await query(countQuery, [id, number]);
+  const { count } = countResult.rows[0];
+
+  if (toPositiveNumberOrDefault(count, 0) > 0) {
+    return res.status(400).json({ error: 'Season is not empty' });
+  }
+
   const del = await query(
     'DELETE FROM seasons WHERE serie = $1 AND number = $2',
     [id, number],
@@ -107,8 +171,5 @@ async function seasonDeleteRoute(req, res) {
 }
 
 export {
-  seasonsRoute,
-  seasonsPostRoute,
-  seasonDeleteRoute,
-  seasonById,
+  seasonsRoute, seasonsPostRoute, seasonDeleteRoute, seasonById,
 };

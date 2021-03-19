@@ -1,3 +1,13 @@
+const MIMETYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+];
+
+function validateMimetype(mimetype) {
+  return MIMETYPES.indexOf(mimetype.toLowerCase()) >= 0;
+}
+
 const invalidField = (s, maxlen) => {
   if (s !== undefined && typeof s !== 'string') {
     return true;
@@ -234,6 +244,7 @@ async function validateEpisode({
 }
 
 export {
+  MIMETYPES,
   isEmpty,
   isString,
   isBoolean,
@@ -244,4 +255,5 @@ export {
   validateSeries,
   validateSeason,
   validateEpisode,
+  validateMimetype,
 };

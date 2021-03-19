@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS users_episodes;
+DROP TABLE IF EXISTS users_series;
 DROP TABLE IF EXISTS episodes;
 DROP TABLE IF EXISTS seasons;
 DROP TABLE IF EXISTS serie_genre;

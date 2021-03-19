@@ -112,12 +112,17 @@ async function importSeasons(seasons, images) {
  * @returns köll á query fyrir insert
  */
 async function importEpisodes(episodes) {
+  const episodeSeason = await query(
+    'SELECT id FROM seasons WHERE serie = $1 AND number = $2',
+    [episodes.serieId, episodes.season],
+  );
+
   const q = `
   INSERT INTO
     episodes
-    (name, number, airDate, overview, season, serie)
+    (name, number, airDate, overview, season, serie, seasonId)
   VALUES
-    ($1, $2, $3, $4, $5, $6)`;
+    ($1, $2, $3, $4, $5, $6, $7)`;
 
   const values = [
     episodes.name,
@@ -126,6 +131,7 @@ async function importEpisodes(episodes) {
     episodes.overview || null,
     episodes.season,
     episodes.serieId,
+    episodeSeason.rows[0].id,
   ];
 
   return query(q, values);

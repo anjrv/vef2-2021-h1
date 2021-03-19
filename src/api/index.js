@@ -1,4 +1,5 @@
 import express from 'express';
+
 import catchErrors from '../utils/catchErrors.js';
 import { requireAuth, checkUserIsAdmin } from '../authentication/auth.js';
 import {

@@ -1,6 +1,6 @@
 import xss from 'xss';
-import { pagedQuery, query } from '../db.js';
 
+import { pagedQuery, query } from '../db.js';
 import { isInt } from '../utils/validation.js';
 
 /**

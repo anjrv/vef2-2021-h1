@@ -97,7 +97,7 @@ async function uploadImageIfNotUploaded(imagePath) {
  * @param {String} imageDir path á möppu sem myndir eru í
  * @returns map af mynd key value pairs: imagepath, image hlekk á cloudinary
  */
-export async function uploadImagesFromDisk(imageDir) {
+async function uploadImagesFromDisk(imageDir) {
   const imagesFromDisk = await readDirAsync(imageDir);
 
   const filteredImages = imagesFromDisk.filter(
@@ -120,3 +120,5 @@ export async function uploadImagesFromDisk(imageDir) {
 
   return images;
 }
+
+export { uploadImagesFromDisk, uploadImageIfNotUploaded };
