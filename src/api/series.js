@@ -309,14 +309,9 @@ async function seriesDeleteRoute(req, res) {
   }
 
   await query('DELETE FROM serie_genre WHERE serie = $1', [id]);
+  await query('DELETE FROM series WHERE id = $1', [id]);
 
-  const del = await query('DELETE FROM series WHERE id = $1', [id]);
-
-  if (del.rowCount === 1) {
-    return res.status(204).json({});
-  }
-
-  return res.status(404).json({ error: 'Series not found' });
+  return res.status(204).json({});
 }
 
 export {
