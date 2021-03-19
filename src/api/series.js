@@ -134,7 +134,7 @@ async function seriesPostRouteWithImage(req, res, next) {
     xss(req.body.airDate) || null,
     xss(inProd || null),
     xss(req.body.tagline) || null,
-    xss(image || null),
+    xss(image || null), // Fáum frekar villu en tómastreng
     xss(req.body.description) || null,
     xss(req.body.language),
     xss(req.body.network) || null,
