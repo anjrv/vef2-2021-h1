@@ -137,7 +137,7 @@ async function updateCurrentUser(req, res) {
 
   const validationMessage = await validateUser({ password, email }, true, id);
 
-  if (validationMessage.length > 0) {
+  if (validationMessage && validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
   }
 

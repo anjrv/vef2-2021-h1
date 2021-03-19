@@ -86,7 +86,7 @@ async function seriesPostRouteWithImage(req, res, next) {
     }
   }
 
-  if (validationMessage.length > 0) {
+  if (validationMessage && validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
   }
 
@@ -203,7 +203,7 @@ async function seriesPatchRouteWithImage(req, res, next) {
     }
   }
 
-  if (validationMessage.length > 0) {
+  if (validationMessage && validationMessage.length > 0) {
     return res.status(400).json({ errors: validationMessage });
   }
 
