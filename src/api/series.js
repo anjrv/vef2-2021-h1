@@ -14,10 +14,12 @@ import { uploadImageIfNotUploaded } from '../images.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
 import withMulter from '../utils/withMulter.js';
 import { findByUsername } from '../authentication/users.js';
+import debug from '../utils/debug.js';
 
 /**
  * Hjálparfall sem skilar sjónvarpsþætti fyrir id
- * @param {*} id id sjónvarpsþáttar
+ *
+ * @param {int} id id sjónvarpsþáttar
  * @returns sjónvarpsþáttur
  */
 async function findSeriesById(id) {
@@ -44,8 +46,9 @@ async function findSeriesById(id) {
 
 /**
  * Skilar fylki af öllum sjónvarpsþáttum
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  * @returns json af sjónvarpsþáttaupplýsingum
  */
 async function seriesRoute(req, res) {
@@ -71,7 +74,7 @@ async function seriesRoute(req, res) {
 }
 
 async function seriesPostRouteWithImage(req, res, next) {
-  const validationMessage = await validateSeries(req.body);
+  const validationMessage = await validateSeries(req.body) || [];
 
   const { file: { path, mimetype } = {} } = req;
 
@@ -81,10 +84,16 @@ async function seriesPostRouteWithImage(req, res, next) {
     if (!validateMimetype(mimetype)) {
       validationMessage.push({
         field: 'image',
-        error: `Mimetype ${mimetype} is not legal. `
-        + `Only ${MIMETYPES.join(', ')} are accepted`,
+        error:
+          `Mimetype ${mimetype} is not legal. `
+          + `Only ${MIMETYPES.join(', ')} are accepted`,
       });
     }
+  } else {
+    validationMessage.push({
+      field: 'image',
+      error: 'no valid image',
+    });
   }
 
   if (validationMessage && validationMessage.length > 0) {
@@ -122,12 +131,14 @@ async function seriesPostRouteWithImage(req, res, next) {
     RETURNING *
     `;
 
+  const inProd = req.body.inProduction ? JSON.parse(req.body.inProduction) : null;
+
   const data = [
     xss(req.body.name),
     xss(req.body.airDate) || null,
-    xss(JSON.parse(req.body.inProduction)) || null,
+    xss(inProd || null),
     xss(req.body.tagline) || null,
-    xss(image),
+    xss(image || null), // Fáum frekar villu en tómastreng
     xss(req.body.description) || null,
     xss(req.body.language),
     xss(req.body.network) || null,
@@ -141,17 +152,36 @@ async function seriesPostRouteWithImage(req, res, next) {
 
 /**
  * Route til að búa til nýjan sjónvarpsþátt
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seriesPostRoute(req, res, next) {
-  return withMulter(req, res, next, seriesPostRouteWithImage);
+  debug(req.body);
+  const { name, image, language } = req.body;
+  if (name && image && language) {
+    return withMulter(req, res, next, seriesPostRouteWithImage);
+  }
+  return res.status(400).json({
+    'Required fields': [
+      {
+        field: 'name',
+      },
+      {
+        field: 'image',
+      },
+      {
+        field: 'language',
+      },
+    ],
+  });
 }
 
 /**
  * Skilar upplýsingum um stakan sjónvarpsþátt fyrir gefið id
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  * @returns json af upplýsingum um sjónvarpsþátt
  */
 async function seriesById(req, res) {
@@ -209,7 +239,7 @@ async function seriesPatchRouteWithImage(req, res, next) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  const validationMessage = await validateSeries(req.body, true);
+  const validationMessage = await validateSeries(req.body, true) || [];
 
   const { file: { path, mimetype } = {} } = req;
   const hasImage = Boolean(path && mimetype);
@@ -218,8 +248,9 @@ async function seriesPatchRouteWithImage(req, res, next) {
     if (!validateMimetype(mimetype)) {
       validationMessage.push({
         field: 'image',
-        error: `Mimetype ${mimetype} is not legal. `
-        + `Only ${MIMETYPES.join(', ')} are accepted`,
+        error:
+          `Mimetype ${mimetype} is not legal. `
+          + `Only ${MIMETYPES.join(', ')} are accepted`,
       });
     }
   }
@@ -268,7 +299,9 @@ async function seriesPatchRouteWithImage(req, res, next) {
   const values = [
     isset(req.body.name) ? xss(req.body.name) : null,
     isset(req.body.airdate) ? xss(req.body.airDate) : null,
-    isset(req.body.inProduction) ? xss(JSON.parse(req.body.inProduction)) : null,
+    isset(req.body.inProduction)
+      ? xss(JSON.parse(req.body.inProduction))
+      : null,
     isset(req.body.tagline) ? xss(req.body.tagline) : null,
     isset(req.body.image) ? xss(image) : null,
     isset(req.body.description) ? xss(req.body.description) : null,
@@ -288,17 +321,20 @@ async function seriesPatchRouteWithImage(req, res, next) {
 
 /**
  * Route til að uppfæra upplýsingar um sjónvarpsþátt fyrir id
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seriesPatchRoute(req, res, next) {
+  debug(req.body);
   return withMulter(req, res, next, seriesPatchRouteWithImage);
 }
 
 /**
  * Eyðir sjónvarpsþætti með gefið id
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function seriesDeleteRoute(req, res) {
   const { id } = req.params;

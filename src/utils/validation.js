@@ -98,7 +98,7 @@ async function validateSeries({
     }
   }
 
-  if (!isDate(airDate)) {
+  if (airDate && !isDate(airDate)) {
     messages.push({
       field: 'airDate',
       message: 'airDate must be a date',
@@ -113,14 +113,14 @@ async function validateSeries({
     });
   }
 
-  if (!isBoolean(inProduction)) {
+  if (inProduction && !isBoolean(inProduction)) {
     messages.push({
       field: 'inProduction',
       message: 'inProduction must be of type boolean',
     });
   }
 
-  if (invalidField(tagline)) {
+  if (tagline && invalidField(tagline)) {
     messages.push({
       field: 'tagline',
       message: 'Tagline must be a string',
@@ -134,21 +134,21 @@ async function validateSeries({
     });
   }
 
-  if (invalidField(description)) {
+  if (description && invalidField(description)) {
     messages.push({
       field: 'description',
       message: 'Description must be a string',
     });
   }
 
-  if (invalidField(network)) {
+  if (network && invalidField(network)) {
     messages.push({
       field: 'network',
       message: 'Network must be a string',
     });
   }
 
-  if (invalidField(url)) {
+  if (url && invalidField(url)) {
     messages.push({
       field: 'url',
       message: 'url must be a string',
@@ -183,7 +183,7 @@ async function validateSeason({
     });
   }
 
-  if (!isDate(airDate)) {
+  if (airDate && !isDate(airDate)) {
     messages.push({
       field: 'airDate',
       message: 'airDate must be a date',
@@ -197,7 +197,7 @@ async function validateSeason({
     });
   }
 
-  if (invalidField(overview)) {
+  if (overview && invalidField(overview)) {
     messages.push({
       field: 'overview',
       message: 'Overview must be a string',
@@ -229,14 +229,14 @@ async function validateEpisode({
     });
   }
 
-  if (!isDate(airDate)) {
+  if (airDate && !isDate(airDate)) {
     messages.push({
       field: 'airDate',
       message: 'airDate must be a date',
     });
   }
 
-  if (invalidField(overview)) {
+  if (overview && invalidField(overview)) {
     messages.push({
       field: 'overview',
       message: 'Overview must be a string',

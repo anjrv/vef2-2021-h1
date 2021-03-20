@@ -2,10 +2,12 @@ import xss from 'xss';
 
 import { pagedQuery, query } from '../db.js';
 import { isInt } from '../utils/validation.js';
+import debug from '../utils/debug.js';
 
 /**
  * Hjálparfall sem finnur flokka sjónvarpsþáttar fyrir id
- * @param {*} serieID id sjónvarpsþáttar
+ *
+ * @param {int} serieID id sjónvarpsþáttar
  * @returns flokkar
  */
 async function findSerieGenresById(serieID) {
@@ -39,8 +41,9 @@ async function findSerieGenresById(serieID) {
 
 /**
  * Skilar fylki af flokkum með paging
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  * @returns json af upplýsingum um flokka
  */
 async function genresRoute(req, res) {
@@ -56,10 +59,12 @@ async function genresRoute(req, res) {
 
 /**
  * Route til að búa til nýjan flokk (genre)
- * @param {*} req request hlutur
- * @param {*} res response hlutur
+ *
+ * @param {object} req request hlutur
+ * @param {object} res response hlutur
  */
 async function genresPostRoute(req, res) {
+  debug(req.body);
   const { name } = req.body;
 
   if (typeof name !== 'string' || name.length === 0 || name.length > 255) {
