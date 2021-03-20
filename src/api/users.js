@@ -89,8 +89,10 @@ async function updateUserRoute(req, res) {
   const q = `
       UPDATE
         users
-      SET admin = $1,
-      WHERE id = $2
+      SET 
+        admin = $1
+      WHERE 
+        id = $2
       RETURNING
         id, username, email, admin`;
   const result = await query(q, [Boolean(admin), id]);

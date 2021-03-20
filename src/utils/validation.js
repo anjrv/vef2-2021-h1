@@ -1,14 +1,6 @@
-const MIMETYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-];
+const MIMETYPES = ['image/jpeg', 'image/png', 'image/gif'];
 
-const STATES = [
-  'langar að horfa',
-  'er að horfa',
-  'hef horft',
-];
+const STATES = ['langar að horfa', 'er að horfa', 'hef horft'];
 
 function validateMimetype(mimetype) {
   return MIMETYPES.indexOf(mimetype.toLowerCase()) >= 0;
@@ -43,12 +35,15 @@ function isString(s) {
 }
 
 function isBoolean(b) {
+  if (typeof b === 'boolean') {
+    return true;
+  }
   const a = JSON.parse(b);
-  return (a === 'true' ? true : a === 'false');
+  return a === 'true' ? true : a === 'false';
 }
 
 function isDate(d) {
-  const valid = (new Date(d)).getTime() > 0;
+  const valid = new Date(d).getTime() > 0;
   return valid;
 }
 
@@ -86,24 +81,28 @@ function toPositiveNumberOrDefault(value, defaultValue) {
   return clean;
 }
 
-async function validateSeries({
-  name,
-  airDate,
-  inProduction,
-  tagline,
-  image,
-  description,
-  language,
-  network,
-  url,
-} = {}, patch = false) {
+async function validateSeries(
+  {
+    name,
+    airDate,
+    inProduction,
+    tagline,
+    image,
+    description,
+    language,
+    network,
+    url,
+  } = {},
+  patch = false,
+) {
   const messages = [];
 
   if (!patch || name || isEmpty(name)) {
-    if ((typeof name !== 'string' || name.length === 0 || name.length > 255)) {
+    if (typeof name !== 'string' || name.length === 0 || name.length > 255) {
       messages.push({
         field: 'name',
-        message: 'Name is required and must not be empty and no longer than 255 charcters',
+        message:
+          'Name is required and must not be empty and no longer than 255 charcters',
       });
     }
   }
@@ -115,8 +114,11 @@ async function validateSeries({
     });
   }
 
-  if (language !== undefined
-    && (typeof language !== 'string' || (language.length !== 2 && language.length !== 0))) {
+  if (
+    language !== undefined
+    && (typeof language !== 'string'
+      || (language.length !== 2 && language.length !== 0))
+  ) {
     messages.push({
       field: 'language',
       message: 'Language must be a string of length 2',
@@ -168,20 +170,20 @@ async function validateSeries({
   return messages;
 }
 
-async function validateSeason({
-  name,
-  number,
-  airDate,
-  overview,
-  poster,
-} = {}, patch = false) {
+async function validateSeason(
+  {
+    name, number, airDate, overview, poster,
+  } = {},
+  patch = false,
+) {
   const messages = [];
 
   if (!patch || name || isEmpty(name)) {
-    if ((typeof name !== 'string' || name.length === 0 || name.length > 255)) {
+    if (typeof name !== 'string' || name.length === 0 || name.length > 255) {
       messages.push({
         field: 'name',
-        message: 'Name is required and must not be empty and no longer than 255 charcters',
+        message:
+          'Name is required and must not be empty and no longer than 255 charcters',
       });
     }
   }
@@ -215,19 +217,20 @@ async function validateSeason({
   }
 }
 
-async function validateEpisode({
-  name,
-  number,
-  airDate,
-  overview,
-} = {}, patch = false) {
+async function validateEpisode(
+  {
+    name, number, airDate, overview,
+  } = {},
+  patch = false,
+) {
   const messages = [];
 
   if (!patch || name || isEmpty(name)) {
-    if ((typeof name !== 'string' || name.length === 0 || name.length > 255)) {
+    if (typeof name !== 'string' || name.length === 0 || name.length > 255) {
       messages.push({
         field: 'name',
-        message: 'Name is required and must not be empty and no longer than 255 charcters',
+        message:
+          'Name is required and must not be empty and no longer than 255 charcters',
       });
     }
   }
