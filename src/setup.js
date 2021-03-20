@@ -74,6 +74,15 @@ async function main() {
   } catch (e) {
     console.error('Villa við csv innlestur:', e.message);
   }
+
+  // Búa til notendur
+  try {
+    const createData = await readFileAsync('./sql/insert-views.sql');
+    await query(createData.toString('utf8'));
+    console.info('States og ratings búnir til');
+  } catch (e) {
+    console.error('Villa við að búa states og ratings:', e.message);
+  }
 }
 
 main().catch((err) => {
