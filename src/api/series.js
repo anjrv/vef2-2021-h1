@@ -13,7 +13,6 @@ import {
 import { uploadImageIfNotUploaded } from '../images.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
 import withMulter from '../utils/withMulter.js';
-import { findByUsername } from '../authentication/users.js';
 import debug from '../utils/debug.js';
 
 /**
@@ -29,10 +28,12 @@ async function findSeriesById(id) {
 
   const series = await query(
     `SELECT
-      series.*
+      series.*, ROUND(AVG(users_series.rating)::numeric,2) AS average_rating, COUNT(users_series.rating) AS ratings_count
     FROM
       series
-    WHERE id = $1
+    LEFT OUTER JOIN users_series ON users_series.serie = series.id
+    GROUP BY series.id
+    HAVING series.id = $1
   `,
     [id],
   );
@@ -40,6 +41,8 @@ async function findSeriesById(id) {
   if (series.rows.length !== 1) {
     return null;
   }
+
+  if (!series.rows[0].average_rating) series.rows[0].average_rating = 'no ratings';
 
   return series.rows[0];
 }
@@ -74,7 +77,7 @@ async function seriesRoute(req, res) {
 }
 
 async function seriesPostRouteWithImage(req, res, next) {
-  const validationMessage = await validateSeries(req.body) || [];
+  const validationMessage = (await validateSeries(req.body)) || [];
 
   const { file: { path, mimetype } = {} } = req;
 
@@ -131,7 +134,9 @@ async function seriesPostRouteWithImage(req, res, next) {
     RETURNING *
     `;
 
-  const inProd = req.body.inProduction ? JSON.parse(req.body.inProduction) : null;
+  const inProd = req.body.inProduction
+    ? JSON.parse(req.body.inProduction)
+    : null;
 
   const data = [
     xss(req.body.name),
@@ -187,32 +192,21 @@ async function seriesPostRoute(req, res, next) {
 async function seriesById(req, res) {
   const { id } = req.params;
 
-  let userId;
-  if (req.body.user) {
-    userId = req.body.user;
-  }
-
   const series = await findSeriesById(id);
 
   if (!series) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  if (user) {
-    const userRating = await query(
-      'SELECT rating FROM users_series WHERE serie = $1 AND "user" = $2',
-      [id, user.id],
-    );
-    const userState = await query(
-      'SELECT state FROM users_series WHERE serie = $1 AND "user" = $2',
-      [id, user.id],
-    );
-    const averageRating = await query('SELECT AVG(rating) FROM users_series');
-    const ratingCount = await query('SELECT COUNT(rating) FROM users_series');
-    series.averageRating = averageRating.rows[0].avg;
-    series.ratingCount = ratingCount.rows[0].count;
-    series.rating = userRating.rows[0].rating;
-    series.state = userState.rows[0].state;
+  let userInfo = null;
+  if (req.user && req.user.id) {
+    userInfo = await query('SELECT state, rating FROM users_series WHERE serie = $1 AND "user" = $2',
+      [id, req.user.id]);
+  }
+
+  if (userInfo && userInfo.rows[0]) {
+    if (userInfo.rows[0].rating) series.rating = userInfo.rows[0].rating;
+    if (userInfo.rows[0].state) series.state = userInfo.rows[0].state;
   }
 
   const serieGenres = await findSerieGenresById(series.id);
@@ -241,7 +235,7 @@ async function seriesPatchRouteWithImage(req, res, next) {
     return res.status(404).json({ error: 'Series not found' });
   }
 
-  const validationMessage = await validateSeries(req.body, true) || [];
+  const validationMessage = (await validateSeries(req.body, true)) || [];
 
   const { file: { path, mimetype } = {} } = req;
   const hasImage = Boolean(path && mimetype);

@@ -1,7 +1,7 @@
 import express from 'express';
 
 import catchErrors from '../utils/catchErrors.js';
-import { requireAuth, checkUserIsAdmin } from '../authentication/auth.js';
+import { requireAuth, checkAuth, checkUserIsAdmin } from '../authentication/auth.js';
 import {
   seriesRoute,
   seriesById,
@@ -44,7 +44,7 @@ const requireAdmin = [requireAuth, checkUserIsAdmin];
 
 const router = express.Router();
 
-function indexRoute(req, res) {
+function indexRoute(_req, res) {
   return res.json({
     tv: {
       series: {
@@ -119,7 +119,7 @@ router.get('/', indexRoute);
 
 router.get('/tv', catchErrors(seriesRoute));
 router.post('/tv', requireAdmin, catchErrors(seriesPostRoute));
-router.get('/tv/:id', catchErrors(seriesById));
+router.get('/tv/:id', checkAuth, catchErrors(seriesById));
 router.patch('/tv/:id', requireAdmin, catchErrors(seriesPatchRoute));
 router.delete('/tv/:id', requireAdmin, catchErrors(seriesDeleteRoute));
 router.get('/tv/:id/season/', catchErrors(seasonsRoute));

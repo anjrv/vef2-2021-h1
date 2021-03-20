@@ -85,6 +85,13 @@ function requireAuth(req, res, next) {
   })(req, res, next);
 }
 
+function checkAuth(req, res, next) {
+  passport.authenticate('jwt', { session: false }, (_err, user) => {
+    req.user = user;
+    return next();
+  })(req, res, next);
+}
+
 /**
  * Middleware til að skoða hvort notandi sé admin
  *
@@ -182,4 +189,9 @@ async function loginRoute(req, res) {
 app.post('/users/register', catchErrors(registerRoute));
 app.post('/users/login', catchErrors(loginRoute));
 
-export { app, requireAuth, checkUserIsAdmin };
+export {
+  app,
+  requireAuth,
+  checkUserIsAdmin,
+  checkAuth,
+};
