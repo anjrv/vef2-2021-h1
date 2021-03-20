@@ -209,6 +209,9 @@ async function updateUser(id, password, email) {
 
   const values = [hashedPassword, isString(email) ? xss(email) : null];
 
+  fields.push('updated');
+  values.push(new Date());
+
   const result = await conditionalUpdate('users', id, fields, values);
 
   if (!result) {
