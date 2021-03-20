@@ -186,9 +186,11 @@ async function seriesPostRoute(req, res, next) {
  */
 async function seriesById(req, res) {
   const { id } = req.params;
-  const { username } = req.body;
 
-  const user = await findByUsername(username);
+  let userId;
+  if (req.body.user) {
+    userId = req.body.user;
+  }
 
   const series = await findSeriesById(id);
 

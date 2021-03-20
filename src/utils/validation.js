@@ -4,8 +4,18 @@ const MIMETYPES = [
   'image/gif',
 ];
 
+const STATES = [
+  'langar að horfa',
+  'er að horfa',
+  'hef horft',
+];
+
 function validateMimetype(mimetype) {
   return MIMETYPES.indexOf(mimetype.toLowerCase()) >= 0;
+}
+
+function validateState(state) {
+  return STATES.indexOf(state.toLowerCase()) >= 0;
 }
 
 const invalidField = (s, maxlen) => {
@@ -245,6 +255,7 @@ async function validateEpisode({
 }
 
 export {
+  STATES,
   MIMETYPES,
   isEmpty,
   isString,
@@ -257,4 +268,5 @@ export {
   validateSeason,
   validateEpisode,
   validateMimetype,
+  validateState,
 };
