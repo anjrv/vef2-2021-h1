@@ -13,13 +13,14 @@ import {
 import { uploadImageIfNotUploaded } from '../images.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
 import withMulter from '../utils/withMulter.js';
+import { findByUsername } from '../authentication/users.js';
 
 /**
  * Hjálparfall sem skilar sjónvarpsþætti fyrir id
  * @param {*} id id sjónvarpsþáttar
  * @returns sjónvarpsþáttur
  */
-async function findById(id) {
+async function findSeriesById(id) {
   if (!isInt(id)) {
     return null;
   }
@@ -155,11 +156,31 @@ async function seriesPostRoute(req, res, next) {
  */
 async function seriesById(req, res) {
   const { id } = req.params;
+  const { username } = req.body;
 
-  const series = await findById(id);
+  const user = await findByUsername(username);
+
+  const series = await findSeriesById(id);
 
   if (!series) {
     return res.status(404).json({ error: 'Series not found' });
+  }
+
+  if (user) {
+    const userRating = await query(
+      'SELECT rating FROM users_series WHERE serie = $1 AND "user" = $2',
+      [id, user.id],
+    );
+    const userState = await query(
+      'SELECT state FROM users_series WHERE serie = $1 AND "user" = $2',
+      [id, user.id],
+    );
+    const averageRating = await query('SELECT AVG(rating) FROM users_series');
+    const ratingCount = await query('SELECT COUNT(rating) FROM users_series');
+    series.averageRating = averageRating.rows[0].avg;
+    series.ratingCount = ratingCount.rows[0].count;
+    series.rating = userRating.rows[0].rating;
+    series.state = userState.rows[0].state;
   }
 
   const serieGenres = await findSerieGenresById(series.id);
@@ -182,7 +203,7 @@ async function seriesPatchRouteWithImage(req, res, next) {
     return null;
   }
 
-  const series = await findById(id);
+  const series = await findSeriesById(id);
 
   if (!series) {
     return res.status(404).json({ error: 'Series not found' });
@@ -286,7 +307,7 @@ async function seriesDeleteRoute(req, res) {
     return null;
   }
 
-  const series = await findById(id);
+  const series = await findSeriesById(id);
 
   if (!series) {
     return res.status(404).json({ error: 'Series not found' });

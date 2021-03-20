@@ -25,6 +25,14 @@ import {
   genresPostRoute,
 } from './genres.js';
 import {
+  ratingPostRoute,
+  ratingPatchRoute,
+  deleteRating,
+  statePostRoute,
+  statePatchRoute,
+  deleteState,
+} from './state.js';
+import {
   listUsers,
   listUser,
   updateUserRoute as updateUser,
@@ -47,15 +55,14 @@ function indexRoute(req, res) {
         href: '/tv/{id}',
         methods: ['GET', 'PATCH', 'DELETE'],
       },
-      // TODO:
-      // rate: {
-      //   href: '/tv/{id}/rate',
-      //   methods: ['POST','PATCH','DELETE],
-      // },
-      // state: {
-      //  href: '/tv/{id}/state',
-      //  methods: ['POST, 'PATCH', 'DELETE],
-      // },
+      rate: {
+        href: '/tv/{id}/rate',
+        methods: ['POST', 'PATCH', 'DELETE'],
+      },
+      state: {
+        href: '/tv/{id}/state',
+        methods: ['POST', 'PATCH', 'DELETE'],
+      },
     },
     seasons: {
       seasons: {
@@ -122,6 +129,13 @@ router.delete('/tv/:id/season/:number', requireAdmin, catchErrors(seasonDeleteRo
 router.post('/tv/:id/season/:number/episode/', requireAdmin, catchErrors(episodesPostRoute));
 router.get('/tv/:id/season/:number/episode/:episode', catchErrors(episodeRoute));
 router.delete('/tv/:id/season/:number/episode/:episode', requireAdmin, catchErrors(episodeDeleteRoute));
+
+router.post('/tv/:id/rate', requireAuth, catchErrors(ratingPostRoute));
+router.patch('/tv/:id/rate', requireAuth, catchErrors(ratingPatchRoute));
+router.delete('/tv/:id/rate', requireAuth, catchErrors(deleteRating));
+router.post('/tv/:id/state', requireAuth, catchErrors(statePostRoute));
+router.patch('/tv/:id/state', requireAuth, catchErrors(statePatchRoute));
+router.delete('/tv/:id/state', requireAuth, catchErrors(deleteState));
 
 router.get('/genres', catchErrors(genresRoute));
 router.post('/genres', requireAdmin, catchErrors(genresPostRoute));

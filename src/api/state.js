@@ -1,25 +1,32 @@
 import xss from 'xss';
+import { findByUsername } from '../authentication/users.js';
 
-import { query } from '../db.js';
+import { conditionalUpdate, query } from '../db.js';
+import { isInt } from '../utils/validation.js';
 
-// Bíða aðeins með þetta - Ath JOIN fyrir rate/state í tv/:id
-// /tv/:id/rate
-// POST, skráir einkunn innskráðs notanda á sjónvarpsþætti, aðeins fyrir innskráða notendur
+// TODO: Birta ratingcount og avg rating
 
+/**
+ * Skráir einkunn innskráðs notanda á sjónvarpsþátt
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
 async function ratingPostRoute(req, res) {
   const { id } = req.params;
-  const { userId } = req.user;
+  const { username } = req.body;
+
+  const user = await findByUsername(username);
 
   const q = `
   INSERT INTO users_series
-    ("user", series, rating)
+    ("user", serie, rating)
   VALUES
     ($1, $2, $3)
   RETURNING *
     `;
 
   const data = [
-    userId,
+    user.id,
     id,
     xss(req.body.rating),
   ];
@@ -29,21 +36,165 @@ async function ratingPostRoute(req, res) {
   return res.status(201).json(result.rows[0]);
 }
 
-// TODO: PATCH, uppfærir einkunn innskráðs notanda á sjónvarpsþætti
+/**
+ * Uppfærir einkunn innskráðs notanda á sjónvarpsþætti
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
 async function ratingPatchRoute(req, res) {
+  const { id } = req.params;
+  const { username } = req.body;
 
+  const user = await findByUsername(username);
+
+  const ratingId = await query('SELECT id FROM users_series WHERE "user" = $1', [user.id]);
+
+  const isset = (f) => typeof f === 'string' || typeof f === 'number';
+
+  const fields = [
+    isset(id) ? 'serie' : null,
+    isset(req.body.rating) ? 'rating' : null,
+  ];
+
+  const values = [
+    isset(id) ? xss(id) : null,
+    isset(req.body.rating) ? xss(req.body.rating) : null,
+  ];
+
+  const result = await conditionalUpdate('users_series', ratingId.rows[0].id, fields, values);
+
+  if (!result) {
+    return res.status(400).json({ error: 'Nothing to patch' });
+  }
+
+  return res.status(201).json(result.rows[0]);
 }
 
-// DELETE, eyðir einkunn innskráðs notanda á sjónvarpsþætti
+/**
+ * Eyðir einkunn innskráðs notanda á sjónvarpsþætti
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
 async function deleteRating(req, res) {
+  const { id: ratedId } = req.params;
+  const { username } = req.body;
 
+  const user = await findByUsername(username);
+
+  if (user === null) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  if (!isInt(ratedId)) {
+    return res.status(404).json({ error: 'Rated entry not found' });
+  }
+
+  const del = await query('DELETE FROM users_series WHERE id = $1', [ratedId]);
+
+  if (del.rowCount === 1) {
+    return res.status(204).json({});
+  }
+
+  return res.status(404).json({ error: 'Rated entry not found' });
 }
 
-// /tv/:id/state
-// POST, skráir stöðu innskráðs notanda á sjónvarpsþætti, aðeins fyrir innskráða notendur
-// PATCH, uppfærir stöðu innskráðs notanda á sjónvarpsþætti
-// DELETE, eyðir stöðu innskráðs notanda á sjónvarpsþætti
+/**
+ * Skráir stöðu innskráðs notanda á sjónvarpsþætti
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
+async function statePostRoute(req, res) {
+  const { id } = req.params;
+  const { username } = req.body;
+
+  const user = await findByUsername(username);
+
+  const q = `
+  INSERT INTO users_series
+    ("user", serie, state)
+  VALUES
+    ($1, $2, $3)
+  RETURNING *
+    `;
+
+  const data = [
+    user.id,
+    id,
+    xss(req.body.state),
+  ];
+
+  const result = await query(q, data);
+
+  return res.status(201).json(result.rows[0]);
+}
+
+/**
+ * Uppfærir stöðu innskráðs notanda á sjónvarpsþætti
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
+async function statePatchRoute (req, res) {
+  const { id } = req.params;
+  const { username } = req.body;
+
+  const user = await findByUsername(username);
+
+  const stateId = await query('SELECT id FROM users_series WHERE "user" = $1', [user.id]);
+
+  const isset = (f) => typeof f === 'string' || typeof f === 'number';
+
+  const fields = [
+    isset(id) ? 'serie' : null,
+    isset(req.body.state) ? 'state' : null,
+  ];
+
+  const values = [
+    isset(id) ? xss(id) : null,
+    isset(req.body.state) ? xss(req.body.state) : null,
+  ];
+
+  const result = await conditionalUpdate('users_series', stateId.rows[0].id, fields, values);
+
+  if (!result) {
+    return res.status(400).json({ error: 'Nothing to patch' });
+  }
+
+  return res.status(201).json(result.rows[0]);
+}
+
+/**
+ * Eyðir stöðu innskráðs notanda á sjónvarpsþætti
+ * @param {*} req request hlutur
+ * @param {*} res response hlutur
+ */
+async function deleteState (req, res) {
+  const { id: watchedId } = req.params;
+  const { username } = req.body;
+
+  const user = await findByUsername(username);
+
+  if (user === null) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  if (!isInt(watchedId)) {
+    return res.status(404).json({ error: 'Watched entry not found' });
+  }
+
+  const del = await query('DELETE FROM users_series WHERE id = $1', [watchedId]);
+
+  if (del.rowCount === 1) {
+    return res.status(204).json({});
+  }
+
+  return res.status(404).json({ error: 'Watched entry not found' });
+}
 
 export {
   ratingPostRoute,
+  ratingPatchRoute,
+  deleteRating,
+  statePostRoute,
+  statePatchRoute,
+  deleteState,
 };
