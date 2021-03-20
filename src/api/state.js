@@ -1,10 +1,7 @@
 import xss from 'xss';
-import { findByUsername } from '../authentication/users.js';
 
 import { conditionalUpdate, query } from '../db.js';
 import { isInt } from '../utils/validation.js';
-
-// TODO: Birta ratingcount og avg rating
 
 /**
  * Skráir einkunn innskráðs notanda á sjónvarpsþátt
@@ -13,9 +10,7 @@ import { isInt } from '../utils/validation.js';
  */
 async function ratingPostRoute(req, res) {
   const { id } = req.params;
-  const { username } = req.body;
-
-  const user = await findByUsername(username);
+  const userId = req.user.id;
 
   const q = `
   INSERT INTO users_series
@@ -26,7 +21,7 @@ async function ratingPostRoute(req, res) {
     `;
 
   const data = [
-    user.id,
+    userId,
     id,
     xss(req.body.rating),
   ];
@@ -43,11 +38,9 @@ async function ratingPostRoute(req, res) {
  */
 async function ratingPatchRoute(req, res) {
   const { id } = req.params;
-  const { username } = req.body;
+  const userId = req.user.id;
 
-  const user = await findByUsername(username);
-
-  const ratingId = await query('SELECT id FROM users_series WHERE "user" = $1', [user.id]);
+  const ratingId = await query('SELECT id FROM users_series WHERE "user" = $1', [userId]);
 
   const isset = (f) => typeof f === 'string' || typeof f === 'number';
 
@@ -77,11 +70,9 @@ async function ratingPatchRoute(req, res) {
  */
 async function deleteRating(req, res) {
   const { id: ratedId } = req.params;
-  const { username } = req.body;
+  const userId = req.user.id;
 
-  const user = await findByUsername(username);
-
-  if (user === null) {
+  if (userId === null) {
     return res.status(404).json({ error: 'User not found' });
   }
 
@@ -105,9 +96,7 @@ async function deleteRating(req, res) {
  */
 async function statePostRoute(req, res) {
   const { id } = req.params;
-  const { username } = req.body;
-
-  const user = await findByUsername(username);
+  const userId = req.user.id;
 
   const q = `
   INSERT INTO users_series
@@ -118,7 +107,7 @@ async function statePostRoute(req, res) {
     `;
 
   const data = [
-    user.id,
+    userId,
     id,
     xss(req.body.state),
   ];
@@ -133,13 +122,11 @@ async function statePostRoute(req, res) {
  * @param {*} req request hlutur
  * @param {*} res response hlutur
  */
-async function statePatchRoute (req, res) {
+async function statePatchRoute(req, res) {
   const { id } = req.params;
-  const { username } = req.body;
+  const userId = req.user.id;
 
-  const user = await findByUsername(username);
-
-  const stateId = await query('SELECT id FROM users_series WHERE "user" = $1', [user.id]);
+  const stateId = await query('SELECT id FROM users_series WHERE "user" = $1', [userId]);
 
   const isset = (f) => typeof f === 'string' || typeof f === 'number';
 
@@ -167,13 +154,12 @@ async function statePatchRoute (req, res) {
  * @param {*} req request hlutur
  * @param {*} res response hlutur
  */
-async function deleteState (req, res) {
+async function deleteState(req, res) {
   const { id: watchedId } = req.params;
-  const { username } = req.body;
 
-  const user = await findByUsername(username);
+  const userId = req.user.id;
 
-  if (user === null) {
+  if (userId === null) {
     return res.status(404).json({ error: 'User not found' });
   }
 
