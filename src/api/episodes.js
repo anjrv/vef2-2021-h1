@@ -12,21 +12,25 @@ import debug from '../utils/debug.js';
  */
 async function episodesPostRoute(req, res) {
   debug(req.body);
-  const { id, number } = req.params;
+  if (req.body && req.body.name && req.body.number) {
+    const { id, number } = req.params;
 
-  if ((!isInt(id)) || (!isInt(number))) {
-    return null;
-  }
+    if (!isInt(id) || !isInt(number)) {
+      return null;
+    }
 
-  const validationMessage = await validateEpisode(req.body);
+    const validationMessage = await validateEpisode(req.body);
 
-  if (validationMessage && validationMessage.length > 0) {
-    return res.status(400).json({ errors: validationMessage });
-  }
+    if (validationMessage && validationMessage.length > 0) {
+      return res.status(400).json({ errors: validationMessage });
+    }
 
-  const seasonId = await query('SELECT id FROM seasons WHERE serie = $1 AND number = $2', [id, number]);
+    const seasonId = await query(
+      'SELECT id FROM seasons WHERE serie = $1 AND number = $2',
+      [id, number],
+    );
 
-  const q = `
+    const q = `
   INSERT INTO episodes
     (name, number, airDate, overview, season, serie, seasonId)
   VALUES
@@ -34,19 +38,30 @@ async function episodesPostRoute(req, res) {
   RETURNING *
   `;
 
-  const data = [
-    xss(req.body.name),
-    xss(req.body.number),
-    xss(req.body.airDate) || null,
-    xss(req.body.overview) || null,
-    number,
-    id,
-    seasonId.rows[0].id,
-  ];
+    const data = [
+      xss(req.body.name),
+      xss(req.body.number),
+      xss(req.body.airDate) || null,
+      xss(req.body.overview) || null,
+      number,
+      id,
+      seasonId.rows[0].id,
+    ];
 
-  const result = await query(q, data);
+    const result = await query(q, data);
 
-  return res.status(201).json(result.rows[0]);
+    return res.status(201).json(result.rows[0]);
+  }
+  return res.status(400).json({
+    'Required fields': [
+      {
+        field: 'name',
+      },
+      {
+        field: 'number',
+      },
+    ],
+  });
 }
 
 /**
@@ -92,8 +107,4 @@ async function episodeDeleteRoute(req, res) {
   return res.status(404).json({ error: 'Episode not found' });
 }
 
-export {
-  episodeRoute,
-  episodesPostRoute,
-  episodeDeleteRoute,
-};
+export { episodeRoute, episodesPostRoute, episodeDeleteRoute };
