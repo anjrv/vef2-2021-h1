@@ -13,7 +13,6 @@ import {
 import { uploadImageIfNotUploaded } from '../images.js';
 import addPageMetadata from '../utils/addPageMetadata.js';
 import withMulter from '../utils/withMulter.js';
-import debug from '../utils/debug.js';
 
 /**
  * Hjálparfall sem skilar sjónvarpsþætti fyrir id
@@ -162,24 +161,7 @@ async function seriesPostRouteWithImage(req, res, next) {
  * @param {object} res response hlutur
  */
 async function seriesPostRoute(req, res, next) {
-  debug(req.body);
-  const { name, image, language } = req.body;
-  if (name && image && language) {
-    return withMulter(req, res, next, seriesPostRouteWithImage);
-  }
-  return res.status(400).json({
-    'Required fields': [
-      {
-        field: 'name',
-      },
-      {
-        field: 'image',
-      },
-      {
-        field: 'language',
-      },
-    ],
-  });
+  return withMulter(req, res, next, seriesPostRouteWithImage);
 }
 
 /**
@@ -200,8 +182,10 @@ async function seriesById(req, res) {
 
   let userInfo = null;
   if (req.user && req.user.id) {
-    userInfo = await query('SELECT state, rating FROM users_series WHERE serie = $1 AND "user" = $2',
-      [id, req.user.id]);
+    userInfo = await query(
+      'SELECT state, rating FROM users_series WHERE serie = $1 AND "user" = $2',
+      [id, req.user.id],
+    );
   }
 
   if (userInfo && userInfo.rows[0]) {
@@ -322,7 +306,6 @@ async function seriesPatchRouteWithImage(req, res, next) {
  * @param {object} res response hlutur
  */
 async function seriesPatchRoute(req, res, next) {
-  debug(req.body);
   return withMulter(req, res, next, seriesPatchRouteWithImage);
 }
 

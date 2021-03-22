@@ -11,7 +11,6 @@ import {
 } from '../utils/validation.js';
 import withMulter from '../utils/withMulter.js';
 import { uploadImageIfNotUploaded } from '../images.js';
-import debug from '../utils/debug.js';
 
 /**
  * Skilar fylki af seasons fyrir sjónvarpsþátt með paging
@@ -40,7 +39,7 @@ async function seasonsPostRouteWithImage(req, res, next) {
     return null;
   }
 
-  const validationMessage = await validateSeason(req.body) || [];
+  const validationMessage = (await validateSeason(req.body)) || [];
 
   const { file: { path, mimetype } = {} } = req;
   const hasImage = Boolean(path && mimetype);
@@ -49,8 +48,9 @@ async function seasonsPostRouteWithImage(req, res, next) {
     if (!validateMimetype(mimetype)) {
       validationMessage.push({
         field: 'poster',
-        error: `Mimetype ${mimetype} is not legal. `
-        + `Only ${MIMETYPES.join(', ')} are accepted`,
+        error:
+          `Mimetype ${mimetype} is not legal. `
+          + `Only ${MIMETYPES.join(', ')} are accepted`,
       });
     }
   } else {
@@ -116,24 +116,7 @@ async function seasonsPostRouteWithImage(req, res, next) {
  * @param {object} res response hlutur
  */
 async function seasonsPostRoute(req, res, next) {
-  debug(req.body);
-  const { name, number, poster } = req.body;
-  if (name && number && poster) {
-    return withMulter(req, res, next, seasonsPostRouteWithImage);
-  }
-  return res.status(400).json({
-    'Required fields': [
-      {
-        field: 'name',
-      },
-      {
-        field: 'number',
-      },
-      {
-        field: 'poster',
-      },
-    ],
-  });
+  return withMulter(req, res, next, seasonsPostRouteWithImage);
 }
 
 /**
